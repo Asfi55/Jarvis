@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J.A.R.V.I.S — GoDrive Autos</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#02070f; --panel:rgba(8,24,40,.72); --panel2:rgba(10,30,50,.55);
+  --line:rgba(23,209,255,.28); --cyan:#17d1ff; --cyan2:#7deeff; --dim:#5f89a6;
+  --ok:#35ffa9; --warn:#ffb020; --bad:#ff4d5e; --txt:#cfeeff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--txt); font-family:'Rajdhani',sans-serif; min-height:100vh; overflow-x:hidden;
+}
+body::before{content:"";position:fixed;inset:0;z-index:-2;
+  background:
+   radial-gradient(1200px 700px at 50% 40%, rgba(23,120,200,.16), transparent 60%),
+   radial-gradient(700px 500px at 12% 85%, rgba(0,200,255,.07), transparent 60%),
+   radial-gradient(700px 500px at 88% 15%, rgba(0,200,255,.07), transparent 60%),
+   linear-gradient(180deg,#020a14 0%,#03101e 50%,#020810 100%);}
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:linear-gradient(rgba(23,209,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(23,209,255,.045) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(ellipse at 50% 45%,black 30%,transparent 85%);}
+/* ---------- header ---------- */
+header{display:flex;align-items:center;gap:18px;padding:14px 26px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(8,26,44,.9),rgba(8,26,44,.4));backdrop-filter:blur(6px);position:sticky;top:0;z-index:50}
+.brand{font-family:'Orbitron';font-weight:900;font-size:22px;letter-spacing:4px;color:#fff;text-shadow:0 0 18px rgba(23,209,255,.8)}
+.brand span{color:var(--cyan)}
+.sub{font-size:12px;letter-spacing:3px;color:var(--dim);text-transform:uppercase}
+.hstat{margin-left:auto;display:flex;gap:26px;align-items:center}
+.clock{font-family:'Orbitron';font-size:20px;color:var(--cyan2);text-shadow:0 0 12px rgba(23,209,255,.6)}
+.hdate{font-size:13px;color:var(--dim);letter-spacing:2px;text-align:right}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok);animation:pulse 2s infinite}
+@keyframes pulse{50%{opacity:.35}}
+/* ---------- layout ---------- */
+.wrap{display:grid;grid-template-columns:295px 1fr;gap:20px;padding:20px 26px;max-width:1700px;margin:0 auto}
+@media(max-width:980px){.wrap{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;position:relative;box-shadow:0 0 30px rgba(0,60,120,.25) inset}
+.panel::before{content:"";position:absolute;top:-1px;left:14px;right:60%;height:2px;background:linear-gradient(90deg,var(--cyan),transparent);box-shadow:0 0 8px var(--cyan)}
+.ptitle{font-family:'Orbitron';font-size:12px;letter-spacing:3px;color:var(--cyan2);margin-bottom:12px;text-transform:uppercase}
+/* ---------- reactor ---------- */
+.reactorbox{display:flex;flex-direction:column;align-items:center;padding:22px 16px}
+.reactor{position:relative;width:190px;height:190px;cursor:pointer}
+.reactor svg{width:100%;height:100%;filter:drop-shadow(0 0 22px rgba(23,209,255,.55))}
+.ringspin{transform-origin:50% 50%;animation:spin 14s linear infinite}
+.ringspin2{transform-origin:50% 50%;animation:spinr 9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinr{to{transform:rotate(-360deg)}}
+.corepulse{animation:core 2.6s ease-in-out infinite;transform-origin:50% 50%}
+@keyframes core{50%{opacity:.72}}
+.reactor.talking svg{filter:drop-shadow(0 0 34px rgba(23,209,255,.95))}
+.jname{font-family:'Orbitron';font-weight:700;letter-spacing:6px;color:#fff;margin-top:14px;font-size:15px;text-shadow:0 0 14px rgba(23,209,255,.9)}
+.jstatus{font-size:12px;color:var(--dim);letter-spacing:2px;margin-top:4px;min-height:16px;text-align:center}
+/* ---------- buttons ---------- */
+.btn{background:rgba(23,209,255,.1);border:1px solid var(--line);color:var(--cyan2);font-family:'Rajdhani';font-weight:600;
+  letter-spacing:1.5px;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;transition:.18s;text-transform:uppercase}
+.btn:hover{background:rgba(23,209,255,.22);box-shadow:0 0 14px rgba(23,209,255,.35)}
+.btn.primary{background:rgba(23,209,255,.22);color:#fff}
+.btn.mic.listening{background:rgba(255,77,94,.25);border-color:var(--bad);color:#fff;animation:pulse 1s infinite}
+.vrow{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;justify-content:center}
+.quick a{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid rgba(23,209,255,.15);border-radius:6px;
+  color:var(--txt);text-decoration:none;font-weight:600;letter-spacing:1px;margin-bottom:8px;transition:.18s;font-size:14px}
+.quick a:hover{border-color:var(--cyan);background:rgba(23,209,255,.08)}
+.quick a b{color:var(--cyan);font-family:'Orbitron';font-size:10px}
+/* ---------- KPI ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
+.kpi::after{content:"";position:absolute;bottom:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
+.kpi .lab{font-size:11px;letter-spacing:2px;color:var(--dim);text-transform:uppercase}
+.kpi .val{font-family:'Orbitron';font-size:22px;color:#fff;margin-top:6px;text-shadow:0 0 12px rgba(23,209,255,.5)}
+.kpi .val.ok{color:var(--ok)} .kpi .val.warn{color:var(--warn)} .kpi .val.bad{color:var(--bad)}
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.tab{font-family:'Orbitron';font-size:11px;letter-spacing:2px;padding:10px 16px;border:1px solid var(--line);border-radius:6px;
+  cursor:pointer;color:var(--dim);background:rgba(8,24,40,.5);transition:.18s;text-transform:uppercase}
+.tab:hover{color:var(--cyan2)}
+.tab.active{color:#fff;background:rgba(23,209,255,.16);border-color:var(--cyan);box-shadow:0 0 16px rgba(23,209,255,.25)}
+.view{display:none}.view.active{display:block;animation:fadein .25s}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}}
+/* ---------- tables ---------- */
+.twrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;white-space:nowrap}
+th{font-family:'Orbitron';font-size:10px;letter-spacing:1.5px;color:var(--cyan2);text-align:left;padding:9px 10px;
+  border-bottom:1px solid var(--line);text-transform:uppercase;position:sticky;top:0;background:rgba(8,24,40,.95)}
+td{padding:8px 10px;border-bottom:1px solid rgba(23,209,255,.08)}
+tr:hover td{background:rgba(23,209,255,.05)}
+.reg{font-family:'Orbitron';font-size:12px;color:#ffd94d;background:rgba(255,217,77,.08);padding:2px 7px;border-radius:4px;border:1px solid rgba(255,217,77,.25)}
+.money{font-weight:700}.pos{color:var(--ok)}.neg{color:var(--bad)}.warn-t{color:var(--warn)}
+.badge{font-size:11px;font-weight:700;letter-spacing:1px;padding:2px 8px;border-radius:10px}
+.b-ok{background:rgba(53,255,169,.12);color:var(--ok);border:1px solid rgba(53,255,169,.35)}
+.b-warn{background:rgba(255,176,32,.12);color:var(--warn);border:1px solid rgba(255,176,32,.35)}
+.b-bad{background:rgba(255,77,94,.12);color:var(--bad);border:1px solid rgba(255,77,94,.35)}
+.b-dim{background:rgba(95,137,166,.12);color:var(--dim);border:1px solid rgba(95,137,166,.35)}
+.chartbox{height:270px;margin-top:18px}
+/* ---------- forms ---------- */
+input,select,textarea{background:rgba(4,16,28,.8);border:1px solid var(--line);color:var(--txt);border-radius:6px;
+  padding:8px 10px;font-family:'Rajdhani';font-size:14px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--cyan);box-shadow:0 0 10px rgba(23,209,255,.25)}
+.formrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.lead-card{border:1px solid rgba(23,209,255,.15);border-radius:8px;padding:12px 14px;margin-bottom:10px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.lead-card .nm{font-weight:700;font-size:16px;color:#fff}
+.del{cursor:pointer;color:var(--bad);font-weight:700;margin-left:auto;background:none;border:none;font-size:16px}
+.task{display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid rgba(23,209,255,.08)}
+.task.done span{text-decoration:line-through;color:var(--dim)}
+/* ---------- modal ---------- */
+.modal{display:none;position:fixed;inset:0;background:rgba(2,7,15,.85);z-index:100;align-items:center;justify-content:center}
+.modal.open{display:flex}
+.mbox{background:#061a2c;border:1px solid var(--cyan);border-radius:10px;padding:26px;width:min(480px,92vw);box-shadow:0 0 40px rgba(23,209,255,.35)}
+.mbox h3{font-family:'Orbitron';letter-spacing:2px;color:var(--cyan2);margin-bottom:14px;font-size:15px}
+.mbox label{display:block;font-size:12px;letter-spacing:1.5px;color:var(--dim);margin:12px 0 4px;text-transform:uppercase}
+.mbox input{width:100%}
+.hint{font-size:12px;color:var(--dim);margin-top:10px;line-height:1.5}
+.editable{border-bottom:1px dashed rgba(23,209,255,.4);cursor:text;min-width:40px;display:inline-block}
+footer{text-align:center;color:var(--dim);font-size:11px;letter-spacing:2px;padding:18px;text-transform:uppercase}
+/* ---------- voice state pill ---------- */
+.statepill{display:inline-flex;align-items:center;gap:8px;font-family:'Orbitron';font-size:10px;letter-spacing:2px;
+  padding:6px 12px;border-radius:20px;border:1px solid var(--line);background:rgba(8,24,40,.7);text-transform:uppercase;color:var(--dim)}
+.statepill .sdot{width:8px;height:8px;border-radius:50%;background:var(--dim);box-shadow:0 0 8px currentColor}
+.statepill[data-s="standby"]{color:var(--cyan2);border-color:var(--line)} .statepill[data-s="standby"] .sdot{background:var(--cyan)}
+.statepill[data-s="listening"]{color:var(--bad);border-color:var(--bad)} .statepill[data-s="listening"] .sdot{background:var(--bad);animation:pulse 1s infinite}
+.statepill[data-s="thinking"],.statepill[data-s="searching"]{color:var(--warn);border-color:var(--warn)} .statepill[data-s="thinking"] .sdot,.statepill[data-s="searching"] .sdot{background:var(--warn);animation:pulse .8s infinite}
+.statepill[data-s="speaking"]{color:var(--ok);border-color:var(--ok)} .statepill[data-s="speaking"] .sdot{background:var(--ok);animation:pulse 1.4s infinite}
+.statepill[data-s="confirm"]{color:#ffd94d;border-color:#ffd94d} .statepill[data-s="confirm"] .sdot{background:#ffd94d;animation:pulse .8s infinite}
+.statepill[data-s="error"],.statepill[data-s="offline"]{color:var(--bad);border-color:rgba(255,77,94,.4)} .statepill[data-s="error"] .sdot,.statepill[data-s="offline"] .sdot{background:var(--bad)}
+/* ---------- chat ---------- */
+.chatlog{display:flex;flex-direction:column;gap:12px;max-height:52vh;overflow-y:auto;padding:6px 2px 12px}
+.bubble{max-width:88%;padding:11px 14px;border-radius:12px;font-size:15px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word}
+.bubble .ts{display:block;font-size:10px;letter-spacing:1px;color:var(--dim);margin-top:6px;opacity:.7}
+.b-user{align-self:flex-end;background:rgba(23,209,255,.14);border:1px solid var(--line);color:#eafcff}
+.b-jarvis{align-self:flex-start;background:rgba(8,26,44,.72);border:1px solid rgba(23,209,255,.18)}
+.b-jarvis .who{font-family:'Orbitron';font-size:9px;letter-spacing:2px;color:var(--cyan2);margin-bottom:5px;text-transform:uppercase}
+.b-sys{align-self:center;background:rgba(255,176,32,.08);border:1px solid rgba(255,176,32,.3);color:var(--warn);font-size:13px;text-align:center;max-width:96%}
+.b-err{align-self:center;background:rgba(255,77,94,.08);border:1px solid rgba(255,77,94,.35);color:#ffb9c0;font-size:13px;text-align:center;max-width:96%}
+.b-confirm{align-self:flex-start;background:rgba(255,217,77,.08);border:1px solid rgba(255,217,77,.4);max-width:92%}
+.b-confirm .cbtns{display:flex;gap:8px;margin-top:10px}
+.srcbox{margin-top:9px;padding-top:9px;border-top:1px solid rgba(23,209,255,.15)}
+.srcbox .slab{font-family:'Orbitron';font-size:9px;letter-spacing:2px;color:var(--warn);margin-bottom:5px;text-transform:uppercase}
+.srcbox a{display:block;color:var(--cyan2);text-decoration:none;font-size:13px;margin:3px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srcbox a:hover{text-decoration:underline}
+.origin{display:inline-block;font-size:9px;letter-spacing:1.5px;padding:1px 7px;border-radius:8px;margin-bottom:7px;text-transform:uppercase;font-family:'Orbitron'}
+.origin.web{background:rgba(255,176,32,.14);color:var(--warn);border:1px solid rgba(255,176,32,.3)}
+.origin.stock{background:rgba(53,255,169,.12);color:var(--ok);border:1px solid rgba(53,255,169,.3)}
+.typing{display:inline-flex;gap:4px}.typing i{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:blink 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,60%,100%{opacity:.25}30%{opacity:1}}
+.chatbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.toolrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.toggle{display:inline-flex;align-items:center;gap:7px;font-size:12px;letter-spacing:1px;color:var(--dim);
+  border:1px solid var(--line);border-radius:6px;padding:7px 11px;cursor:pointer;user-select:none;background:rgba(8,24,40,.5)}
+.toggle.on{color:#fff;border-color:var(--cyan);background:rgba(23,209,255,.16);box-shadow:0 0 12px rgba(23,209,255,.2)}
+.toggle .tled{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+.toggle.on .tled{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="brand">J.A.R.V.I.S <span>//</span> GODRIVE AUTOS</div>
+    <div class="sub">Dealership Command Interface — Stark Protocol v2.6</div>
+  </div>
+  <div class="hstat">
+    <div class="dot"></div>
+    <div>
+      <div class="clock" id="clock">--:--:--</div>
+      <div class="hdate" id="hdate"></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- ============ LEFT ============ -->
+  <div>
+    <div class="panel reactorbox">
+      <div class="reactor" id="reactor" title="Click: daily briefing">
+        <svg viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="92" fill="none" stroke="rgba(23,209,255,.25)" stroke-width="2"/>
+          <circle cx="100" cy="100" r="84" fill="none" stroke="rgba(23,209,255,.5)" stroke-width="1" stroke-dasharray="4 6" class="ringspin"/>
+          <g class="ringspin2">
+            <circle cx="100" cy="100" r="70" fill="none" stroke="var(--cyan)" stroke-width="7" stroke-dasharray="30 14" opacity=".8"/>
+          </g>
+          <circle cx="100" cy="100" r="54" fill="none" stroke="rgba(125,238,255,.6)" stroke-width="2"/>
+          <g class="ringspin">
+            <circle cx="100" cy="100" r="45" fill="none" stroke="var(--cyan)" stroke-width="4" stroke-dasharray="12 9"/>
+          </g>
+          <circle cx="100" cy="100" r="34" fill="rgba(23,209,255,.08)" stroke="var(--cyan)" stroke-width="1.5"/>
+          <g class="corepulse">
+            <polygon points="100,74 124,116 76,116" fill="none" stroke="#bff4ff" stroke-width="5" stroke-linejoin="round"/>
+            <polygon points="100,84 115,111 85,111" fill="rgba(191,244,255,.85)"/>
+          </g>
+        </svg>
+      </div>
+      <div class="jname">J.A.R.V.I.S</div>
+      <div class="jstatus" id="jstatus">All systems online, Mr Khan.</div>
+      <div class="vrow">
+        <button class="btn primary" id="briefBtn">◈ Brief Me</button>
+        <button class="btn mic" id="micBtn">🎙 Listen</button>
+        <button class="btn" id="stopBtn">■ Stop</button>
+        <button class="btn" id="setBtn">⚙</button>
+      </div>
+      <div class="vrow" style="width:100%">
+        <input id="askIn" placeholder="Ask Jarvis… e.g. MOT for Seat Leon" style="flex:1;min-width:0">
+        <button class="btn primary" id="askBtn">Ask</button>
+      </div>
+    </div>
+
+    <div class="panel quick" style="margin-top:18px">
+      <div class="ptitle">Portals</div>
+      <a href="https://www.g3r.co.uk" target="_blank"><b>G3</b> G3 Auction House</a>
+      <a href="https://portal.autotrader.co.uk" target="_blank"><b>AT</b> Autotrader Portal</a>
+      <a href="https://www.autotrader.co.uk/cars/valuation" target="_blank"><b>£</b> Autotrader Valuations</a>
+      <a href="https://www.godriveautos.co.uk" target="_blank"><b>WEB</b> godriveautos.co.uk</a>
+      <a href="https://www.gov.uk/check-mot-history" target="_blank"><b>MOT</b> MOT History Check</a>
+    </div>
+
+    <div class="panel" style="margin-top:18px">
+      <div class="ptitle">MOT Alerts</div>
+      <div id="motAlerts" style="font-size:14px;line-height:1.7"></div>
+    </div>
+  </div>
+
+  <!-- ============ RIGHT ============ -->
+  <div>
+    <div class="kpis" id="kpis"></div>
+
+    <div class="tabs">
+      <div class="tab active" data-v="chat">◈ Jarvis</div>
+      <div class="tab" data-v="stock">Stock</div>
+      <div class="tab" data-v="ads">Autotrader Ads</div>
+      <div class="tab" data-v="g3">G3 Watchlist</div>
+      <div class="tab" data-v="sold">Sold</div>
+      <div class="tab" data-v="leads">Leads &amp; Tasks</div>
+      <div class="tab" data-v="costs">Costs</div>
+    </div>
+
+    <div class="panel view active" id="v-chat">
+      <div class="ptitle" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <span>Conversation</span>
+        <span class="statepill" id="statePill" data-s="standby"><span class="sdot"></span><span id="stateTxt">Standby</span></span>
+      </div>
+      <div class="toolrow">
+        <span class="toggle" id="tgWake"><span class="tled"></span>Wake word</span>
+        <span class="toggle" id="tgMic"><span class="tled"></span>Microphone</span>
+        <span class="toggle on" id="tgWeb"><span class="tled"></span>Web search</span>
+        <span class="toggle" id="tgVoice"><span class="tled"></span>Speak replies</span>
+        <span class="toggle" id="btnStopSpk">■ Stop speaking</span>
+        <span class="toggle" id="btnNewConv">✎ New chat</span>
+        <span class="toggle" id="btnSettings2">⚙ Settings</span>
+      </div>
+      <div class="chatlog" id="chatLog"></div>
+      <div class="chatbar">
+        <input id="chatIn" placeholder="Type or speak… e.g. news today, or MOT on the Seat Leon" style="flex:1;min-width:0">
+        <button class="btn primary" id="chatSend">Send</button>
+        <button class="btn mic" id="chatMic">🎙</button>
+      </div>
+      <div class="hint" id="capHint" style="margin-top:10px"></div>
+    </div>
+
+    <div class="panel view" id="v-stock">
+      <div class="ptitle">Current Stock — <span id="stockCount"></span> Vehicles</div>
+      <div class="twrap"><table id="stockTable"></table></div>
+      <div class="chartbox"><canvas id="profitChart"></canvas></div>
+    </div>
+
+    <div class="panel view" id="v-ads">
+      <div class="ptitle">Autotrader Ad Tracker</div>
+      <div class="hint" style="margin-bottom:10px">Toggle LIVE when the ad is on Autotrader. Screen price vs AT retail benchmark. Edits are saved automatically.</div>
+      <div class="twrap"><table id="adsTable"></table></div>
+    </div>
+
+    <div class="panel view" id="v-g3">
+      <div class="ptitle">G3 Auction Watchlist — Tracked Vehicles</div>
+      <div class="hint" style="margin-bottom:10px">Margin = AT Retail − Trade. AT Rating is the Autotrader desirability score.</div>
+      <div class="twrap"><table id="g3Table"></table></div>
+    </div>
+
+    <div class="panel view" id="v-sold">
+      <div class="ptitle">Sold Vehicles</div>
+      <div class="twrap"><table id="soldTable"></table></div>
+    </div>
+
+    <div class="panel view" id="v-leads">
+      <div class="ptitle">Lead Inbox — AutoTrader &amp; Email</div>
+      <div id="inboxList" style="margin-bottom:20px"></div>
+      <div class="ptitle">Client Leads</div>
+      <div class="formrow">
+        <input id="ln" placeholder="Name" style="flex:1;min-width:120px">
+        <input id="lp" placeholder="Phone" style="width:130px">
+        <input id="lc" placeholder="Car interested in" style="flex:1;min-width:140px">
+        <select id="ls"><option>New</option><option>Contacted</option><option>Test Drive</option><option>Negotiating</option><option>Won</option><option>Lost</option></select>
+        <button class="btn primary" onclick="addLead()">+ Add</button>
+      </div>
+      <div id="leadList"></div>
+      <div class="ptitle" style="margin-top:22px">Tasks</div>
+      <div class="formrow">
+        <input id="tin" placeholder="New task… (e.g. put Clio on Autotrader)" style="flex:1">
+        <button class="btn primary" onclick="addTask()">+ Add</button>
+      </div>
+      <div id="taskList"></div>
+    </div>
+
+    <div class="panel view" id="v-costs">
+      <div class="ptitle">Fixed Costs — Monthly</div>
+      <div class="twrap"><table id="costTable"></table></div>
+    </div>
+  </div>
+</div>
+
+<footer>GoDrive Autos · Data source: GODRIVE STOCKLIST.xlsx + G3 tracked vehicles · Built by Claude</footer>
+
+<!-- settings modal -->
+<div class="modal" id="modal">
+  <div class="mbox">
+    <h3>⚙ Jarvis Settings</h3>
+    <label>Backend URL</label>
+    <input id="backendUrl" placeholder="http://localhost:8787">
+    <div class="hint" style="margin:6px 0 4px">Where the Claude backend is running. Leave blank when the backend serves this page. Set it (e.g. your Render/Railway URL) if you open the portal separately.</div>
+    <label style="margin-top:14px">ElevenLabs API Key — legacy browser fallback</label>
+    <input id="ekey" type="password" placeholder="sk_... (optional)">
+    <label>Voice ID (optional)</label>
+    <input id="evoice" placeholder="Default: Daniel (British)">
+    <div class="hint">For production, put the ElevenLabs key on the <b>backend</b> (ELEVENLABS_API_KEY) instead — voice then runs server-side. A key here is only a browser-only fallback and is stored in this browser. Without any key, Jarvis uses the built-in British browser voice.</div>
+    <div class="vrow" style="justify-content:flex-end">
+      <button class="btn" onclick="closeModal()">Close</button>
+      <button class="btn primary" onclick="saveSettings()">Save &amp; Test</button>
+    </div>
+  </div>
+</div>
+
+<!-- car detail modal -->
+<div class="modal" id="carModal">
+  <div class="mbox" style="width:min(580px,94vw);max-height:88vh;overflow-y:auto">
+    <h3 id="cmTitle"></h3>
+    <div id="cmBody" style="font-size:15px;line-height:1.6"></div>
+    <div class="vrow" style="justify-content:flex-end">
+      <button class="btn primary" id="cmSay">🔊 Read Aloud</button>
+      <button class="btn" onclick="document.getElementById('carModal').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DB = {"stock": [{"reg": "DL66 JYO", "make": "VAUXHALL", "model": "MOKKA X ACTIVE S/S", "colour": "BLUE", "miles": 83700.0, "trans": "MANUAL", "engine": "1.6 PETROL", "mot": "2027-06-12", "history": "FULL HISTORY", "keys": 2, "keepers": 3, "screen": 4490.0, "tprice": 3040.0, "rprice": 5268.0, "profit": 1450.0, "cost": 390.0, "nprofit": 1060.0, "note": ""}, {"reg": "EO63 LVN", "make": "HYUNDAI", "model": "IX35 CRDI SE", "colour": "GREY", "miles": 42112.0, "trans": "MANUAL", "engine": "1.7 DIESEL", "mot": "2027-06-15", "history": "FULL HISTORY", "keys": 2, "keepers": 4, "screen": 5490.0, "tprice": 3898.0, "rprice": 6332.0, "profit": 1592.0, "cost": 390.0, "nprofit": 1202.0, "note": ""}, {"reg": "KX64 OWG", "make": "SEAT", "model": "LEON TDI SE DSG", "colour": "GREY", "miles": 101192.0, "trans": "AUTOMATIC", "engine": "1.6 DIESEL", "mot": "2027-06-16", "history": "FULL HISTORY", "keys": 2, "keepers": 1, "screen": 4990.0, "tprice": 3665.0, "rprice": 5439.0, "profit": 1325.0, "cost": 845.0, "nprofit": 480.0, "note": ""}, {"reg": "PY11 MDF", "make": "VOLKSWAGEN", "model": "PASSAT GT TDI BLUEMOTION", "colour": "GREY", "miles": 99250.0, "trans": "AUTOMATIC", "engine": "2.0 DIESEL", "mot": "2027-06-26", "history": "FULL HISTORY", "keys": 2, "keepers": 5, "screen": 3990.0, "tprice": 2277.0, "rprice": 4470.0, "profit": 1713.0, "cost": 200.0, "nprofit": 1513.0, "note": ""}, {"reg": "AK65 HWJ", "make": "BMW", "model": "1 SERIES", "colour": "WHITE", "miles": 85500.0, "trans": "MANUAL", "engine": "1.5 DIESEL", "mot": "2027-06-27", "history": "PART HISTORY", "keys": 2, "keepers": 4, "screen": 4990.0, "tprice": 2857.0, "rprice": 5650.0, "profit": 2133.0, "cost": 190.0, "nprofit": 1943.0, "note": ""}, {"reg": "KM14 UBS", "make": "MERCEDES", "model": "B-CLASS B180 CDI BLUEEFFICI", "colour": "SILVER", "miles": 46900.0, "trans": "AUTOMATIC", "engine": "1.5 DIESEL", "mot": "2027-05-16", "history": "FULL HISTORY", "keys": 2, "keepers": 2, "screen": 6490.0, "tprice": 4726.0, "rprice": 7000.0, "profit": 1764.0, "cost": 0.0, "nprofit": 1764.0, "note": ""}, {"reg": "GE19 EBD", "make": "RENAULT", "model": "CLIO ICONIC TCE", "colour": "GREY", "miles": 63550.0, "trans": "MANUAL", "engine": "0.9 PETROL", "mot": "2027-07-05", "history": "NO (FINANCED REPOSESED)", "keys": 2, "keepers": 2, "screen": 5990.0, "tprice": 4147.0, "rprice": 6873.0, "profit": 1843.0, "cost": 107.0, "nprofit": 1736.0, "note": "PORTAL: SALE IN PROGRESS — advert off Autotrader (17 Jul)"}, {"reg": "WG68 CZK", "make": "FORD", "model": "FIESTA", "colour": "BLACK", "miles": 74888.0, "trans": "MANUAL", "engine": "1.0 PETROL", "mot": "2027-06-12", "history": "FULL HISTORY", "keys": 2, "keepers": 1, "screen": 5990.0, "tprice": 4047.0, "rprice": 6500.0, "profit": 1943.0, "cost": 275.0, "nprofit": 1668.0, "note": "25 amaz"}, {"reg": "FV13 GKC", "make": "AUDI", "model": "A1", "colour": "RED", "miles": 97804.0, "trans": "MANUAL", "engine": "1.2 DIESEL", "mot": "2027-07-05", "history": "FULL HISTORY", "keys": 2, "keepers": 5, "screen": 4490.0, "tprice": 3165.0, "rprice": 5300.0, "profit": 1325.0, "cost": 175.0, "nprofit": 1150.0, "note": "V62 FORM"}, {"reg": "MV14 GZS", "make": "FORD", "model": "FOCUS", "colour": "SILVER", "miles": 39000.0, "trans": "AUTOMATIC", "engine": "1.6 PETROL", "mot": "2027-07-11", "history": "FULL HISTORY", "keys": 2, "keepers": 4, "screen": 5990.0, "tprice": 3396.6, "rprice": 7165.0, "profit": 2593.4, "cost": 35.0, "nprofit": 2558.4, "note": "V62 FORM"}, {"reg": "JO51 RDH", "make": "MERCEDES", "model": "C CLASS", "colour": "GREY", "miles": 61000.0, "trans": "AUTOMATIC", "engine": "2.2 DIESEL", "mot": "2027-07-13", "history": "PART HISTORY", "keys": 2, "keepers": 3, "screen": 8990.0, "tprice": 5453.0, "rprice": 9692.0, "profit": 3537.0, "cost": 598.0, "nprofit": 2939.0, "note": "V62 FORM"}, {"reg": "VE65 FNA", "make": "NISSAN", "model": "QASHQAI", "colour": "BLUE", "miles": 95621.0, "trans": "MANUAL", "engine": "1.6 PETROL", "mot": "2026-10-12", "history": "FULL HISTORY", "keys": 2, "keepers": 2, "screen": 5490.0, "tprice": 3498.0, "rprice": 5950.0, "profit": 1992.0, "cost": 55.0, "nprofit": 1937.0, "note": ""}, {"reg": "LD17KWX", "make": "CITROEN", "model": "C3 PURETECH FLAIR", "colour": "SILVER", "miles": 52817.0, "trans": "MANUAL", "engine": "1.2 PETROL", "mot": "2026-10-16", "history": "FULL HISTORY", "keys": 2, "keepers": 5, "screen": null, "tprice": 2684.0, "rprice": 5824.0, "profit": null, "cost": null, "nprofit": null, "note": ""}, {"reg": "SL14KAA", "make": "MAZDA", "model": "MAZDA6 D SPORT NAV", "colour": "SILVER", "miles": 98833.0, "trans": "MANUAL", "engine": "2.2 DIESEL", "mot": "2026-11-23", "history": "FULL HISTORY", "keys": 2, "keepers": 5, "screen": null, "tprice": 1876.2, "rprice": 3919.0, "profit": null, "cost": null, "nprofit": null, "note": ""}, {"reg": "SH16YWR", "make": "PEUGEOT", "model": "3008 BLUE HDI ALLURE", "colour": "GREY", "miles": 93020.0, "trans": "MANUAL", "engine": "1.6 DIESEL", "mot": "2027-01-05", "history": "NO", "keys": 2, "keepers": 3, "screen": null, "tprice": 1958.2, "rprice": 4342.0, "profit": null, "cost": null, "nprofit": null, "note": "V62 FORM"}, {"reg": "SF63NVT", "make": "PEUGEOT", "model": "208 ACCESS PLUS", "colour": "GREY", "miles": 47665.0, "trans": "MANUAL", "engine": "1.2 PETROL", "mot": "2026-11-20", "history": "NO", "keys": 1, "keepers": 2, "screen": null, "tprice": 1246.0, "rprice": 3395.0, "profit": null, "cost": null, "nprofit": null, "note": "V62 FORM"}, {"reg": "AJ14LCX", "make": "VOLVO", "model": "V40 D2 R-DESIGN", "colour": "BLACK", "miles": 110890.0, "trans": "MANUAL", "engine": "1.6 DIESEL", "mot": "2027-05-14", "history": "NO", "keys": 1, "keepers": 5, "screen": null, "tprice": 1998.2, "rprice": 4187.0, "profit": null, "cost": null, "nprofit": null, "note": ""}, {"reg": "RK67WJC", "make": "BMW", "model": "1 SERIES 116D M SPORT", "colour": "BLUE", "miles": 81572.0, "trans": "MANUAL", "engine": "1.5 DIESEL", "mot": "2026-06-23", "history": "FULL HISTORY", "keys": 1, "keepers": 3, "screen": 8490.0, "tprice": 4663.2, "rprice": 9194.0, "profit": null, "cost": 20.0, "nprofit": null, "note": ""}], "sold": [{"reg": "NL15 UZT", "make": "HYUNDAI", "model": "I10 SE", "colour": "BLUE", "miles": 61368.0, "trans": "MANUAL", "engine": "1.0 PETROL", "mot": "2027-06-15", "history": "FULL HISTORY", "keys": 2, "keepers": 4, "screen": 4200.0, "tprice": 3216.0, "rprice": 4650.0, "profit": 984.0, "cost": 370.0, "nprofit": 614.0, "note": ""}, {"reg": "YP63 LXR", "make": "VAUXHALL", "model": "ADAM JAM", "colour": "WHITE", "miles": 96916.0, "trans": "MANUAL", "engine": "1.4 PETROL", "mot": "2027-06-09", "history": "PART HISTORY (TILL 58,00)", "keys": 1, "keepers": 2, "screen": 2737.0, "tprice": 1663.0, "rprice": 2975.0, "profit": 1074.0, "cost": 480.0, "nprofit": 594.0, "note": ""}, {"reg": "SG65 XZT", "make": "FORD", "model": "FOCUS ZETEC", "colour": "WHITE", "miles": 48500.0, "trans": "MANUAL", "engine": "1.0 PETROL", "mot": "2027-06-21", "history": "FULL HISTORY", "keys": 3, "keepers": 3, "screen": 5170.0, "tprice": 3220.0, "rprice": 5400.0, "profit": 1950.0, "cost": 490.0, "nprofit": 1460.0, "note": ""}, {"reg": "KX16 NLM", "make": "NISSAN", "model": "QASHQAI N CONNECT DCI", "colour": "RED", "miles": 89600.0, "trans": "MANUAL", "engine": "1.5 DIESEL", "mot": "2027-03-05", "history": "PART HISTORY", "keys": 2, "keepers": 2, "screen": 5670.0, "tprice": 3337.0, "rprice": 6200.0, "profit": 2333.0, "cost": 350.0, "nprofit": 1983.0, "note": ""}, {"reg": "YJ63 BXA", "make": "BMW", "model": "X1 20D X-LINE", "colour": "GREY", "miles": 67400.0, "trans": "MANUAL", "engine": "2.0 DIESEL", "mot": "2027-04-19", "history": "NO (FINANCED REPOSESED)", "keys": 1, "keepers": 3, "screen": 5550.0, "tprice": 3463.0, "rprice": 6207.0, "profit": 2087.0, "cost": 285.0, "nprofit": 1802.0, "note": "V62 FORM"}, {"reg": "AY68 NYL", "make": "CITROEN", "model": "C3 PURETECH FLAIR NAV EDITION", "colour": "BLACK", "miles": 79710.0, "trans": "MANUAL", "engine": "1.2 PETROL", "mot": "2027-06-17", "history": "NO (FINANCED REPOSESED)", "keys": 2, "keepers": 4, "screen": 4670.0, "tprice": 2430.0, "rprice": 5280.0, "profit": 2240.0, "cost": 458.0, "nprofit": 1782.0, "note": "V62 FORM"}, {"reg": "FP15 NZV", "make": "NISSAN", "model": "QASHQAI", "colour": "BLACK", "miles": 53850.0, "trans": "MANUAL", "engine": "PETROL", "mot": "2027-03-18", "history": "FULL HISTORY", "keys": 2, "keepers": 3, "screen": 5490.0, "tprice": 3396.0, "rprice": 5590.0, "profit": 2094.0, "cost": 411.0, "nprofit": 1683.0, "note": ""}, {"reg": "SD65 RMX", "make": "VAUXHALL", "model": "ANTARA EXCLUSIVE CDTI S/S", "colour": "WHITE", "miles": 61700.0, "trans": "MANUAL", "engine": "2.2 DIESEL", "mot": "2027-06-23", "history": "FULL HISTORY", "keys": 1, "keepers": 4, "screen": 3080.0, "tprice": 1752.0, "rprice": 3700.0, "profit": 1328.0, "cost": 400.0, "nprofit": 928.0, "note": "V62 FORM"}, {"reg": "LV13 GZP", "make": "CITROEN", "model": "DS5", "colour": "WHITE", "miles": 87300.0, "trans": "AUTOMATIC", "engine": "2.0 DIESEL", "mot": "2027-06-23", "history": "FULL HISTORY", "keys": 2, "keepers": 5, "screen": 4215.0, "tprice": 2533.0, "rprice": 4650.0, "profit": 1682.0, "cost": 513.0, "nprofit": 1169.0, "note": ""}, {"reg": "AF13 OHO", "make": "FORD", "model": "KUGA", "colour": "GREY", "miles": 103600.0, "trans": "AUTOMATIC", "engine": "2.0 DIESEL", "mot": "2027-01-06", "history": "FULL HISTORY", "keys": 2, "keepers": 4, "screen": 4182.0, "tprice": 2205.0, "rprice": 4550.0, "profit": 1977.0, "cost": 546.0, "nprofit": 1431.0, "note": "PORTAL: RESERVED (not confirmed sold) — off Autotrader (17 Jul)"}], "costs": [{"name": "RENT", "amount": 800.0, "due": "2026-06-01"}, {"name": "TRADE INSURANCE", "amount": 569.25, "due": "2026-07-06"}, {"name": "STOCK & PL", "amount": 135.87, "due": "2026-07-09"}, {"name": "AUTOTRADER", "amount": 1477.68, "due": "2026-07-05"}, {"name": "CAZOO", "amount": 612.0, "due": "2026-08-15"}, {"name": "AA", "amount": 300.0, "due": "2026-07-15"}, {"name": "CAR DEALER 5", "amount": 92.0, "due": "2026-08-01"}], "g3": [{"lot": "252", "vrm": "SA67RKJ", "make": "FORD", "model": "FIESTA", "miles": 77764.0, "history": "No Service History", "trans": "Manual", "mot": "11/08/2026", "fuel": "Petrol", "keepers": "3", "grade": 5.0, "keys": "2", "trade": 2863.0, "retail": 5772.0, "rating": 50.0, "motnote": "Clear - no failures; minor brake pad/disc wear advisories only"}, {"lot": "111", "vrm": "PK16ZFU", "make": "KIA", "model": "SPORTAGE", "miles": 104508.0, "history": "No Service History", "trans": "Manual", "mot": "01/11/2026", "fuel": "Diesel", "keepers": "2", "grade": 4.0, "keys": "2", "trade": 2144.0, "retail": 5135.0, "rating": 29.0, "motnote": "Clear - no failures; minor brake disc and tyre wear advisories only"}, {"lot": "123", "vrm": "SH63AXG", "make": "MAZDA", "model": "CX-5", "miles": 120446.0, "history": "Yes - Service History", "trans": "Automatic", "mot": "06/10/2026", "fuel": "Diesel", "keepers": "4", "grade": 3.0, "keys": "2", "trade": 1557.0, "retail": 4244.0, "rating": 82.0, "motnote": "Major: anti-roll bar joints excessively worn (2022); minor: recurring tyre/suspension wear, brake pipe corrosion"}, {"lot": "258", "vrm": "MK64OCC", "make": "PEUGEOT", "model": "308", "miles": 74052.0, "history": "Yes - Service History", "trans": "Manual", "mot": "14/06/2027", "fuel": "Diesel", "keepers": "2", "grade": 3.0, "keys": "2", "trade": 1744.0, "retail": 4064.0, "rating": 29.0, "motnote": "Clear - no failures; minor: recurring tyre and brake disc/pad wear advisories"}, {"lot": "253", "vrm": "BD68OZR", "make": "CITROEN", "model": "C3", "miles": 83876.0, "history": "Yes - Service History", "trans": "Manual", "mot": "21/06/2027", "fuel": "Diesel", "keepers": "1", "grade": 3.0, "keys": "2", "trade": 2552.0, "retail": 5368.0, "rating": 46.0, "motnote": "Open safety recall outstanding; major: indicator/headlamp aim/undertray (2023, since fixed); minor: recurring tyre wear, suspension bush"}, {"lot": "285", "vrm": "ND62JOA", "make": "VOLKSWAGEN", "model": "POLO", "miles": 83421.0, "history": "No Service History", "trans": "Manual", "mot": "20/01/2027", "fuel": "Petrol", "keepers": "3", "grade": 5.0, "keys": "2", "trade": 2079.0, "retail": 4309.0, "rating": 73.0, "motnote": "Recurring major failures nearly every year: engine light (2026), coil spring/brakes/washer (2025), emissions (2024), headlamp aim/brakes (2022, 2020, 2019, 2018); minor: windscreen chips, shock absorber oil misting"}, {"lot": "53", "vrm": "EJ16YZL", "make": "NISSAN", "model": "QASHQAI", "miles": 81754.0, "history": "Yes - Service History", "trans": "Manual", "mot": "15/11/2026", "fuel": "Petrol", "keepers": "3", "grade": 3.0, "keys": "1", "trade": 3345.0, "retail": 6235.0, "rating": 90.0, "motnote": "Major headlamp aim fault (2025, since fixed); dangerous tyre tread/shock leak (2019, since fixed); minor shock absorber wear"}, {"lot": "60", "vrm": "SA68EHX", "make": "VAUXHALL", "model": "INSIGNIA", "miles": 96243.0, "history": "Yes - Service History", "trans": "Manual", "mot": "02/11/2026", "fuel": "Diesel", "keepers": "3", "grade": 4.0, "keys": "2", "trade": 3291.0, "retail": 6626.0, "rating": 68.0, "motnote": "Clear MOT history - no failures or advisories recorded; open safety recall outstanding"}, {"lot": "103", "vrm": "SJ17NDS", "make": "FORD", "model": "FOCUS", "miles": 72147.0, "history": "Yes - Service History", "trans": "Manual", "mot": "29/01/2027", "fuel": "Diesel", "keepers": "5", "grade": 3.0, "keys": "2", "trade": 3385.0, "retail": 6388.0, "rating": 49.0, "motnote": "Open safety recall outstanding; major DPF smoke fault (2021, since fixed); otherwise clean history"}, {"lot": "108", "vrm": "SA69PXC", "make": "PEUGEOT", "model": "2008", "miles": 65939.0, "history": "No Service History", "trans": "Manual", "mot": "22/02/2027", "fuel": "Petrol", "keepers": "3", "grade": 3.0, "keys": "1", "trade": 3636.0, "retail": 6891.0, "rating": 63.0, "motnote": "Major exhaust insecure (2024); dangerous brake pads/major brake disc wear (2022), both since fixed; minor: tyre wear, exhaust mounting, brake fluctuation"}, {"lot": "133", "vrm": "CY15HHT", "make": "VAUXHALL", "model": "CORSA", "miles": 82280.0, "history": "Yes - Service History", "trans": "Manual", "mot": "15/01/2027", "fuel": "Petrol", "keepers": "3", "grade": 5.0, "keys": "1", "trade": 3128.0, "retail": 5721.0, "rating": 86.0, "motnote": "Major structural issues: sub-frame corrosion (seriously weakened) + brake hose twisted (2025 and 2026, both since fixed); minor brake disc wear"}, {"lot": "134", "vrm": "LD17KWX", "make": "CITROEN", "model": "C3", "miles": 52817.0, "history": "Yes - Service History", "trans": "Manual", "mot": "16/10/2026", "fuel": "Petrol", "keepers": "4", "grade": 3.0, "keys": "2", "trade": 2926.0, "retail": 5819.0, "rating": 80.0, "motnote": "Clear - no failures; minor tyre wear advisories only"}, {"lot": "136", "vrm": "YJ13YAL", "make": "AUDI", "model": "Q3", "miles": 81784.0, "history": "Yes - Service History", "trans": "Automatic", "mot": "23/05/2027", "fuel": "Petrol", "keepers": "1", "grade": 2.0, "keys": "3", "trade": null, "retail": null, "rating": null, "motnote": "Major headlamp bulb fault (2026, fixed on retest); minor oil leak, tyre wear (model confirmed as Audi Q3 via MOT check; Autotrader valuation unavailable for this reg)"}, {"lot": "251", "vrm": "NJ64VKU", "make": "KIA", "model": "CEED", "miles": 83645.0, "history": "Yes - Service History", "trans": "Manual", "mot": "19/09/2026", "fuel": "Petrol", "keepers": "0", "grade": 5.0, "keys": "1", "trade": 1890.0, "retail": 3976.0, "rating": 70.0, "motnote": "Dangerous tyre bulge (2023, fixed); major brake imbalance (2018, fixed); ongoing minor corrosion: subframe/suspension arms/coil springs/brake hoses"}, {"lot": "272", "vrm": "SE14WCL", "make": "VOLKSWAGEN", "model": "POLO", "miles": 80184.0, "history": "Yes - Service History", "trans": "Manual", "mot": "23/03/2027", "fuel": "Petrol", "keepers": "3", "grade": 3.0, "keys": "2", "trade": 2314.0, "retail": 4603.0, "rating": 97.0, "motnote": "Repeated dangerous/major failures: brake pads (2025), engine light/coil springs (2024), extensive brake system/wheel bearing/emissions failure (2023), washer fault (2019); minor: tyre wear, exhaust leak, brake/shock wear"}, {"lot": "277", "vrm": "SV62ONO", "make": "RENAULT", "model": "MEGANE", "miles": 25575.0, "history": "No Service History", "trans": "Manual", "mot": "02/09/2026", "fuel": "Petrol", "keepers": "0", "grade": 2.0, "keys": "2", "trade": 1153.0, "retail": 3309.0, "rating": 69.0, "motnote": "Historic major: coil spring fractures (2018, 2022); minor: brake pipe corrosion, suspension/shock wear, tyre cracking"}, {"lot": "288", "vrm": "SH16YWR", "make": "PEUGEOT", "model": "3008", "miles": 93020.0, "history": "No Service History", "trans": "Manual", "mot": "05/01/2027", "fuel": "Diesel", "keepers": "2", "grade": 2.0, "keys": "2", "trade": 1857.0, "retail": 4354.0, "rating": 27.0, "motnote": "Major failures: windscreen obstruction/driveshaft/suspension (2025), tyres/coil spring (2024), headlamp aim/exhaust leak (2023), driveshaft/wiper (2021); minor: reg plate lamp, brake discs, suspension wear"}, {"lot": "290", "vrm": "KV17YCA", "make": "PEUGEOT", "model": "208", "miles": 77824.0, "history": "Yes - Service History", "trans": "Manual", "mot": "28/03/2027", "fuel": "Petrol", "keepers": "1", "grade": 4.0, "keys": "2", "trade": 1158.0, "retail": 3691.0, "rating": 95.0, "motnote": "Major: headlamp fault (2026); dangerous: brake pads (2025); minor: tyre wear, brake discs, exhaust mounting"}, {"lot": "293", "vrm": "LR15VVP", "make": "MERCEDES", "model": "C CLASS", "miles": 94319.0, "history": "Yes - Service History", "trans": "Automatic", "mot": "15/04/2027", "fuel": "Diesel", "keepers": "4", "grade": 4.0, "keys": "2", "trade": 3250.0, "retail": 6080.0, "rating": 56.0, "motnote": "Major: wipers/brake binding (2025); open safety recall outstanding; minor: wheel bearing, brake, tyre wear"}, {"lot": "18", "vrm": "SA66LCV", "make": "RENAULT", "model": "KADJAR", "miles": 79666.0, "history": "No Service History", "trans": "Manual", "mot": "29/04/2027", "fuel": "Diesel", "keepers": "2", "grade": 3.0, "keys": "2", "trade": 2869.0, "retail": 5910.0, "rating": 55.0, "motnote": "Repeated major/dangerous failures: suspension/driveshaft/headlamps/tyres (2026), wipers/headlamps (2025), engine light/shock leak (2024), brake hose leak/coil spring (2023), tyre tread (2022); currently minor brake wear"}, {"lot": "12", "vrm": "RA65GOX", "make": "BMW", "model": "1 SERIES", "miles": 74555.0, "history": "Yes - Service History", "trans": "Manual", "mot": "11/09/2026", "fuel": "Diesel", "keepers": "5", "grade": 3.0, "keys": "2", "trade": 5419.0, "retail": 8797.0, "rating": 53.0, "motnote": "Minor oil leak (rear diff seals, ongoing); past major: mirror missing/tyre tread (2024), washer liquid (2021)"}, {"lot": "149", "vrm": "DF67JBX", "make": "FORD", "model": "FIESTA", "miles": 55423.0, "history": "Yes - Service History", "trans": "Manual", "mot": "06/11/2026", "fuel": "Petrol", "keepers": "3", "grade": 3.0, "keys": "2", "trade": 3926.0, "retail": 6924.0, "rating": 56.0, "motnote": "Clear - no failures on record; minor brake pad wear advisory (2022) only"}, {"lot": "282", "vrm": "SL14KAA", "make": "MAZDA", "model": "MAZDA 6", "miles": 98833.0, "history": "Yes - Service History", "trans": "Manual", "mot": "23/11/2026", "fuel": "Diesel", "keepers": "4", "grade": 3.0, "keys": "2", "trade": 1615.0, "retail": 3902.0, "rating": 94.0, "motnote": "Major: brake pipe corrosion (2024-2025, since passed); dangerous: brake pads (2021); minor: suspension arm/wiper wear"}, {"lot": "200", "vrm": "SC63TGN", "make": "RENAULT", "model": "CAPTUR", "miles": 91347.0, "history": "Yes - Service History", "trans": "Manual", "mot": "17/10/2026", "fuel": "Diesel", "keepers": "1", "grade": 4.0, "keys": "2", "trade": 1511.0, "retail": 3759.0, "rating": 38.0, "motnote": "Repeated major failures historically: brakes/wipers (2024), tyre mismatch/brakes (2022), coil spring (2021), suspension/driveshaft (2019); currently minor tyre cracking only"}, {"lot": "203", "vrm": "BF63WBK", "make": "VAUXHALL", "model": "ASTRA", "miles": 49702.0, "history": "Yes - Service History", "trans": "Manual", "mot": "26/04/2027", "fuel": "Diesel", "keepers": "2", "grade": 3.0, "keys": "1", "trade": 2459.0, "retail": 4795.0, "rating": 64.0, "motnote": "Clear - no failures or advisories on record"}, {"lot": "234", "vrm": "ML14JWJ", "make": "FORD", "model": "FIESTA", "miles": 95873.0, "history": "Yes - Service History", "trans": "Manual", "mot": "30/03/2027", "fuel": "Petrol", "keepers": "1", "grade": 1.0, "keys": "2", "trade": 716.0, "retail": 2709.0, "rating": 93.0, "motnote": "Minor: recurring brake pad/disc, tyre and suspension bush wear advisories; no major failures on record"}, {"lot": "245", "vrm": "SA12RXZ", "make": "VAUXHALL", "model": "CORSA", "miles": 56395.0, "history": "Yes - Service History", "trans": "Manual", "mot": "11/04/2027", "fuel": "Petrol", "keepers": "2", "grade": 3.0, "keys": "1", "trade": 988.0, "retail": 2792.0, "rating": 87.0, "motnote": "Ongoing minor corrosion (shockers, subframe, arms); past major: coil spring fracture (2019), stop lamps (2020), reg plate illegible (2021)"}, {"lot": "164", "vrm": "RK67WJC", "make": "BMW", "model": "1 SERIES", "miles": 81572.0, "history": "Yes - ECU Service Record", "trans": "Manual", "mot": "23/06/2026", "fuel": "Diesel", "keepers": "2", "grade": 4.0, "keys": "1", "trade": 5567.0, "retail": 9027.0, "rating": 44.0, "motnote": "MOT EXPIRED 23/06/2026; open safety recall outstanding; minor: shock absorber oil misting, tyre wear - no major defects"}, {"lot": "207", "vrm": "FP18SUX", "make": "FORD", "model": "KUGA", "miles": 98422.0, "history": "Yes - Service History", "trans": "Manual", "mot": "15/07/2026", "fuel": "Diesel", "keepers": "1", "grade": 3.0, "keys": "2", "trade": 3894.0, "retail": 7240.0, "rating": 46.0, "motnote": "MOT expires today (15/07/2026); minor: tyre wear, windscreen chip (2023); no major failures"}, {"lot": "210", "vrm": "LGZ7291", "make": "DS", "model": "DS 3", "miles": 75580.0, "history": "No Service History", "trans": "Manual", "mot": "11/06/2027", "fuel": "Petrol", "keepers": "2", "grade": 3.0, "keys": "2", "trade": 2053.0, "retail": 4772.0, "rating": 33.0, "motnote": "Dangerous tyre defect - ply/cords exposed (2024, since fixed); minor exhaust mounting"}, {"lot": "225", "vrm": "SY09THF", "make": "NISSAN", "model": "MICRA", "miles": 84323.0, "history": "Yes - Service History", "trans": "Manual", "mot": "11/06/2026", "fuel": "Diesel", "keepers": "3", "grade": 3.0, "keys": "2", "trade": 162.0, "retail": 1812.0, "rating": null, "motnote": "MOT EXPIRED 11/06/2026; minor: windscreen chip, recurring brake pipe corrosion, door hinge wear; past major: indicator/anti-roll bar (2019)"}], "leads": [{"name": "Katie G.", "car": "Seat Leon", "reg": "KX64 OWG", "src": "AutoTrader", "date": "16–17 Jul", "status": "Awaiting reply", "note": "HOT — 3 messages, no reply sent. Full message in AutoTrader portal."}, {"name": "Tariq A.", "car": "Seat Leon", "reg": "KX64 OWG", "src": "AutoTrader", "date": "17 Jul 22:29", "status": "Awaiting reply", "note": "Second live buyer on the Leon."}, {"name": "Chloe B.", "car": "Audi A1", "reg": "FV13 GKC", "src": "AutoTrader", "date": "15 Jul", "status": "Awaiting reply", "note": ""}, {"name": "Missed call", "car": "Unknown vehicle", "reg": "", "src": "AutoTrader phone 07383 835883", "date": "15 Jul 14:56", "status": "Needs callback", "note": ""}, {"name": "Gail D.", "car": "Ford Kuga", "reg": "AF13 OHO", "src": "AutoTrader", "date": "14 Jul", "status": "Needs review", "note": "Car is reserved on portal — reply should reflect that."}, {"name": "Chaida A.", "car": "Hyundai ix35", "reg": "EO63 LVN", "src": "AutoTrader", "date": "18 Jul", "status": "Replied", "note": "Email reply sent 18 Jul 09:04."}, {"name": "Saran S.", "car": "BMW 1 Series", "reg": "AK65 HWJ", "src": "AutoTrader", "date": "15 Jul", "status": "Replied", "note": ""}, {"name": "Lewis C.", "car": "Ford Fiesta", "reg": "WG68 CZK", "src": "AutoTrader", "date": "14 Jul", "status": "Replied", "note": ""}, {"name": "Mohamed B.", "car": "VW Passat", "reg": "PY11 MDF", "src": "MOTORS", "date": "13 Jul", "status": "Replied", "note": ""}, {"name": "David G.", "car": "Renault Clio", "reg": "GE19 EBD", "src": "AutoTrader", "date": "15 Jul", "status": "Sale in progress", "note": "Viewing was booked Fri 09:30; portal shows sale in progress."}], "generated": "2026-07-18"};
+
+/* ================= helpers ================= */
+const fmt = n => (n==null||n==="")?"—":"£"+Number(n).toLocaleString("en-GB",{maximumFractionDigits:0});
+const store = (k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const load = (k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}};
+const el = id=>document.getElementById(id);
+function parseDMY(v){ if(!v) return null; if(/^\d{2}\/\d{2}\/\d{4}$/.test(v)){const[a,b,c]=v.split("/");return new Date(`${c}-${b}-${a}`);} return new Date(v); }
+function motDays(v){ const d=parseDMY(v); return (!d||isNaN(d))?null:Math.round((d-new Date())/864e5); }
+function fmtDate(v){ const d=parseDMY(v); return (!d||isNaN(d))?"unknown":d.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}); }
+function motBadge(iso){
+  const d=motDays(iso);
+  if(d==null) return '<span class="badge b-dim">?</span>';
+  if(d<0) return '<span class="badge b-bad">EXPIRED</span>';
+  if(d<60) return `<span class="badge b-warn">${d}d left</span>`;
+  return `<span class="badge b-ok">${Math.round(d/30)}m left</span>`;
+}
+
+/* ================= clock ================= */
+setInterval(()=>{
+  const n=new Date();
+  el("clock").textContent=n.toLocaleTimeString("en-GB");
+  el("hdate").textContent=n.toLocaleDateString("en-GB",{weekday:"short",day:"2-digit",month:"short",year:"numeric"}).toUpperCase();
+},500);
+
+/* ================= KPIs ================= */
+const stock=DB.stock, sold=DB.sold;
+const invested = stock.reduce((s,c)=>s+(+c.tprice||0),0);
+const potential = stock.reduce((s,c)=>s+((+c.screen||0)?((+c.screen)-(+c.tprice||0)-(+c.cost||0)):0),0);
+const soldProfit = sold.reduce((s,c)=>s+(+c.nprofit||0),0);
+const fixedTotal = DB.costs.reduce((s,c)=>s+(+c.amount||0),0);
+const motSoon = stock.filter(c=>{const d=motDays(c.mot);return d!=null&&d<60;}).length;
+el("kpis").innerHTML=`
+ <div class="kpi"><div class="lab">Cars In Stock</div><div class="val">${stock.length}</div></div>
+ <div class="kpi"><div class="lab">Capital In Stock</div><div class="val">${fmt(invested)}</div></div>
+ <div class="kpi"><div class="lab">Potential Net Profit</div><div class="val ok">${fmt(potential)}</div></div>
+ <div class="kpi"><div class="lab">Realised Profit (Sold)</div><div class="val ok">${fmt(soldProfit)}</div></div>
+ <div class="kpi"><div class="lab">Fixed Costs / Month</div><div class="val warn">${fmt(fixedTotal)}</div></div>
+ <div class="kpi"><div class="lab">MOT Alerts</div><div class="val ${motSoon?"bad":"ok"}">${motSoon}</div></div>`;
+
+/* ================= MOT alerts panel ================= */
+el("motAlerts").innerHTML = stock
+  .map(c=>({c,d:motDays(c.mot)})).filter(x=>x.d!=null&&x.d<75).sort((a,b)=>a.d-b.d)
+  .map(x=>`<div><span class="reg">${x.c.reg}</span> ${x.c.make} ${x.c.model} — ${x.d<0?'<b class="neg">MOT EXPIRED</b>':`<b class="warn-t">${x.d} days</b>`}</div>`)
+  .join("")||'<span style="color:var(--ok)">No MOTs due within 75 days. ✓</span>';
+
+/* ================= stock table ================= */
+function profitCls(v){return v>0?"pos":v<0?"neg":""}
+el("stockCount").textContent=stock.length;
+el("stockTable").innerHTML=`
+<tr><th>#</th><th>Reg</th><th>Make</th><th>Model</th><th>Colour</th><th>Miles</th><th>Trans</th><th>Engine</th><th>MOT</th><th>History</th><th>Keys</th><th>Screen</th><th>Trade</th><th>Retail</th><th>Cost</th><th>Net Profit</th><th>Notes</th></tr>`+
+stock.map((c,i)=>`<tr style="cursor:pointer" onclick="showCar('stock',${i})">
+ <td>${i+1}</td><td><span class="reg">${c.reg}</span></td><td>${c.make}</td><td>${c.model}</td><td>${c.colour||""}</td>
+ <td>${(+c.miles).toLocaleString()}</td><td>${c.trans||""}</td><td>${c.engine||""}</td>
+ <td>${motBadge(c.mot)}</td><td style="font-size:12px">${c.history||""}</td><td>${c.keys||""}</td>
+ <td class="money">${fmt(c.screen)}</td><td>${fmt(c.tprice)}</td><td>${fmt(c.rprice)}</td><td>${fmt(c.cost)}</td>
+ <td class="money ${profitCls(c.nprofit)}">${fmt(c.nprofit)}</td><td style="font-size:12px;color:var(--dim)">${c.note||""}</td>
+</tr>`).join("");
+
+/* ================= sold table ================= */
+el("soldTable").innerHTML=`
+<tr><th>Reg</th><th>Make</th><th>Model</th><th>Miles</th><th>Screen</th><th>Trade</th><th>Cost</th><th>Net Profit</th></tr>`+
+sold.map((c,i)=>`<tr style="cursor:pointer" onclick="showCar('sold',${i})">
+ <td><span class="reg">${c.reg}</span></td><td>${c.make}</td><td>${c.model}</td><td>${(+c.miles).toLocaleString()}</td>
+ <td>${fmt(c.screen)}</td><td>${fmt(c.tprice)}</td><td>${fmt(c.cost)}</td>
+ <td class="money pos">${fmt(c.nprofit)}</td></tr>`).join("")+
+`<tr><td colspan="7" style="text-align:right;font-weight:700">TOTAL REALISED</td><td class="money pos">${fmt(soldProfit)}</td></tr>`;
+
+/* ================= ads tracker ================= */
+function renderAds(){
+  const ads=load("jarvis_ads",{});
+  el("adsTable").innerHTML=`
+  <tr><th>Live</th><th>Reg</th><th>Car</th><th>Screen (Ad) Price</th><th>AT Retail</th><th>AT Trade</th><th>vs Retail</th><th>Ad Notes</th></tr>`+
+  stock.map(c=>{
+    const a=ads[c.reg]||{live:!!c.screen,note:""};
+    const diff=(c.screen&&c.rprice)?c.screen-c.rprice:null;
+    return `<tr>
+     <td><input type="checkbox" ${a.live?"checked":""} onchange="setAd('${c.reg}','live',this.checked)"></td>
+     <td><span class="reg">${c.reg}</span></td><td>${c.make} ${c.model}</td>
+     <td class="money">${fmt(c.screen)}</td><td>${fmt(c.rprice)}</td><td>${fmt(c.tprice)}</td>
+     <td class="${diff==null?"":diff<=0?"pos":"warn-t"}">${diff==null?"—":(diff>0?"+":"")+fmt(diff).replace("£","£")}</td>
+     <td><span class="editable" contenteditable onblur="setAd('${c.reg}','note',this.textContent)">${a.note||""}</span></td>
+    </tr>`;}).join("");
+}
+function setAd(reg,k,v){const a=load("jarvis_ads",{});a[reg]=a[reg]||{};a[reg][k]=v;store("jarvis_ads",a);}
+renderAds();
+
+/* ================= G3 watchlist ================= */
+el("g3Table").innerHTML=`
+<tr><th>Lot</th><th>Reg</th><th>Make</th><th>Model</th><th>Miles</th><th>Fuel</th><th>Trans</th><th>Grade</th><th>Keys</th><th>Trade</th><th>Retail</th><th>Margin</th><th>AT Score</th><th>MOT Notes</th></tr>`+
+DB.g3.map((c,i)=>{
+  const m=(c.trade&&c.retail)?c.retail-c.trade:null;
+  return `<tr style="cursor:pointer" onclick="showCar('g3',${i})">
+   <td>${c.lot}</td><td><span class="reg">${c.vrm}</span></td><td>${c.make}</td><td>${c.model}</td>
+   <td>${(+c.miles).toLocaleString()}</td><td>${c.fuel}</td><td>${c.trans}</td>
+   <td><span class="badge ${c.grade<=2?"b-ok":c.grade<=3?"b-warn":"b-bad"}">G${c.grade}</span></td><td>${c.keys}</td>
+   <td>${fmt(c.trade)}</td><td>${fmt(c.retail)}</td>
+   <td class="money ${m>2500?"pos":""}">${fmt(m)}</td>
+   <td>${c.rating==null?"—":`<span class="badge ${c.rating>=70?"b-ok":c.rating>=45?"b-warn":"b-bad"}">${c.rating}</span>`}</td>
+   <td style="font-size:12px;color:var(--dim);white-space:normal;min-width:280px">${c.motnote||""}</td>
+  </tr>`;}).join("");
+
+/* ================= costs ================= */
+el("costTable").innerHTML=`<tr><th>Item</th><th>Monthly</th><th>Next Due</th></tr>`+
+DB.costs.map(c=>`<tr><td>${c.name}</td><td class="money">${fmt(c.amount)}</td><td>${c.due||"—"}</td></tr>`).join("")+
+`<tr><td style="font-weight:700">TOTAL</td><td class="money warn-t">${fmt(fixedTotal)}</td><td></td></tr>`;
+
+/* ================= chart ================= */
+new Chart(el("profitChart"),{type:"bar",
+ data:{labels:stock.filter(c=>c.nprofit).map(c=>c.reg),
+  datasets:[{label:"Net profit per car (£)",data:stock.filter(c=>c.nprofit).map(c=>c.nprofit),
+   backgroundColor:"rgba(23,209,255,.55)",borderColor:"#17d1ff",borderWidth:1}]},
+ options:{responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{labels:{color:"#7deeff",font:{family:"Rajdhani"}}}},
+  scales:{x:{ticks:{color:"#5f89a6"},grid:{color:"rgba(23,209,255,.07)"}},
+          y:{ticks:{color:"#5f89a6"},grid:{color:"rgba(23,209,255,.07)"}}}}});
+
+/* ================= tabs ================= */
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active");el("v-"+t.dataset.v).classList.add("active");
+});
+function goTab(name){document.querySelector(`.tab[data-v="${name}"]`).click();}
+
+/* ================= leads & tasks ================= */
+function renderLeads(){
+  const L=load("jarvis_leads",[]);
+  el("leadList").innerHTML=L.map((l,i)=>`
+   <div class="lead-card">
+     <span class="nm">${l.name}</span><span>${l.phone||""}</span>
+     <span style="color:var(--cyan2)">${l.car||""}</span>
+     <select onchange="updLead(${i},this.value)">
+       ${["New","Contacted","Test Drive","Negotiating","Won","Lost"].map(s=>`<option ${s===l.status?"selected":""}>${s}</option>`).join("")}
+     </select>
+     <button class="del" onclick="delLead(${i})">✕</button>
+   </div>`).join("")||'<div class="hint">No leads yet. Add your first client above.</div>';
+}
+function addLead(){
+  const name=el("ln").value.trim();if(!name)return;
+  const L=load("jarvis_leads",[]);
+  L.unshift({name,phone:el("lp").value,car:el("lc").value,status:el("ls").value,ts:Date.now()});
+  store("jarvis_leads",L);el("ln").value=el("lp").value=el("lc").value="";renderLeads();
+  say(`Lead ${name} logged, Mr Khan.`);
+}
+function updLead(i,v){const L=load("jarvis_leads",[]);L[i].status=v;store("jarvis_leads",L);}
+function delLead(i){const L=load("jarvis_leads",[]);L.splice(i,1);store("jarvis_leads",L);renderLeads();}
+function renderTasks(){
+  const T=load("jarvis_tasks",[]);
+  el("taskList").innerHTML=T.map((t,i)=>`
+   <div class="task ${t.done?"done":""}">
+     <input type="checkbox" ${t.done?"checked":""} onchange="tglTask(${i})">
+     <span style="flex:1">${t.txt}</span>
+     <button class="del" onclick="delTask(${i})">✕</button>
+   </div>`).join("")||'<div class="hint">No tasks. All clear, Mr Khan.</div>';
+}
+function addTask(){const v=el("tin").value.trim();if(!v)return;const T=load("jarvis_tasks",[]);T.unshift({txt:v,done:false});store("jarvis_tasks",T);el("tin").value="";renderTasks();}
+function tglTask(i){const T=load("jarvis_tasks",[]);T[i].done=!T[i].done;store("jarvis_tasks",T);renderTasks();}
+function delTask(i){const T=load("jarvis_tasks",[]);T.splice(i,1);store("jarvis_tasks",T);renderTasks();}
+function renderInbox(){
+  const L=DB.leads||[];
+  el("inboxList").innerHTML=L.map(l=>`
+   <div class="lead-card">
+     <span class="nm">${l.name}</span>
+     <span style="color:var(--cyan2)">${l.car}</span>
+     ${l.reg?`<span class="reg">${l.reg}</span>`:""}
+     <span style="color:var(--dim)">${l.src} · ${l.date}</span>
+     <span class="badge ${l.status==="Awaiting reply"?"b-bad":l.status==="Replied"?"b-ok":"b-warn"}">${l.status}</span>
+     ${l.note?`<span style="flex-basis:100%;color:var(--dim);font-size:13px">${l.note}</span>`:""}
+   </div>`).join("")||'<div class="hint">No leads recorded yet.</div>';
+}
+renderInbox();renderLeads();renderTasks();
+el("tin").addEventListener("keydown",e=>{if(e.key==="Enter")addTask()});
+
+/* ================= VOICE ================= */
+let audioObj=null;
+function status(t){el("jstatus").textContent=t;}
+async function say(text){
+  stopSpeak();
+  el("reactor").classList.add("talking");status("Speaking…");
+  const key=localStorage.getItem("jarvis_ekey");
+  const voice=localStorage.getItem("jarvis_evoice")||"onwK4e9ZLuTAKqWW03F9"; // Daniel (British)
+  if(key){
+    try{
+      const r=await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice}?output_format=mp3_44100_128`,{
+        method:"POST",headers:{"xi-api-key":key,"Content-Type":"application/json"},
+        body:JSON.stringify({text,model_id:"eleven_multilingual_v2",voice_settings:{stability:.5,similarity_boost:.75}})});
+      if(!r.ok) throw new Error("ElevenLabs "+r.status);
+      const blob=await r.blob();
+      audioObj=new Audio(URL.createObjectURL(blob));
+      audioObj.onended=()=>{el("reactor").classList.remove("talking");status("All systems online, Mr Khan.");};
+      audioObj.play();return;
+    }catch(e){console.warn(e);status("ElevenLabs failed — using backup voice");}
+  }
+  const u=new SpeechSynthesisUtterance(text);
+  u.rate=1;u.pitch=.95;u.lang="en-GB";
+  const vs=speechSynthesis.getVoices();
+  u.voice=vs.find(v=>/en-GB/i.test(v.lang)&&/male|daniel|arthur|george/i.test(v.name))||vs.find(v=>/en-GB/i.test(v.lang))||null;
+  u.onend=()=>{el("reactor").classList.remove("talking");status("All systems online, Mr Khan.");};
+  speechSynthesis.speak(u);
+}
+function stopSpeak(){
+  if(audioObj){audioObj.pause();audioObj=null;}
+  speechSynthesis.cancel();
+  el("reactor").classList.remove("talking");status("All systems online, Mr Khan.");
+}
+el("stopBtn").onclick=stopSpeak;
+
+function briefing(){
+  const T=load("jarvis_tasks",[]).filter(t=>!t.done);
+  const L=load("jarvis_leads",[]).filter(l=>!["Won","Lost"].includes(l.status));
+  const alerts=stock.map(c=>({c,d:motDays(c.mot)})).filter(x=>x.d!=null&&x.d<60);
+  let t=`Good ${new Date().getHours()<12?"morning":new Date().getHours()<18?"afternoon":"evening"}, Mr Khan. `;
+  t+=`GoDrive Autos status report. You currently have ${stock.length} vehicles in stock, with ${fmt(invested).replace("£","")} pounds of capital deployed. `;
+  t+=`Projected net profit on current stock stands at approximately ${Math.round(potential)} pounds. `;
+  t+=`Realised profit from ${sold.length} sold vehicles is ${Math.round(soldProfit)} pounds. `;
+  if(alerts.length){t+=`Attention: ${alerts.length} MOT ${alerts.length>1?"issues":"issue"} — `+alerts.map(x=>`the ${x.c.make} ${x.c.model}, registration ${x.c.reg}, ${x.d<0?"has expired":"expires in "+x.d+" days"}`).join("; ")+". ";}
+  else t+="No MOT expiries within sixty days. ";
+  t+=`Monthly fixed costs are ${Math.round(fixedTotal)} pounds. `;
+  const NB=(DB.leads||[]).filter(l=>l.status==="Awaiting reply");
+  if(NB.length)t+=`Priority: ${NB.length} ${NB.length>1?"enquiries are":"enquiry is"} awaiting a reply — ${NB.map(x=>x.name+" about the "+x.car).join("; ")}. `;
+  if(L.length)t+=`You have ${L.length} active ${L.length>1?"leads":"lead"} awaiting follow-up. `;
+  if(T.length)t+=`Outstanding tasks: ${T.slice(0,3).map(x=>x.txt).join(". ")}. `;
+  t+="Shall I bring anything else up on the display, Mr Khan?";
+  return t;
+}
+function runBriefing(){
+  const t=briefing();
+  try{ if(window.jarvisShowBriefing) window.jarvisShowBriefing(t); }catch(_){}
+  say(t);
+}
+el("briefBtn").onclick=runBriefing;
+el("reactor").onclick=runBriefing;
+
+/* ================= CAR KNOWLEDGE ENGINE ================= */
+const SRC={stock:DB.stock,sold:DB.sold,g3:DB.g3};
+const ALLCARS=[
+ ...DB.stock.map((c,i)=>({c,src:"stock",i})),
+ ...DB.sold.map((c,i)=>({c,src:"sold",i})),
+ ...DB.g3.map((c,i)=>({c,src:"g3",i}))];
+
+function tokensOf(x){
+  const c=x.c, reg=(c.reg||c.vrm||"").toLowerCase();
+  const t=new Set();
+  (c.make+" "+c.model).toLowerCase().split(/[^a-z0-9]+/).forEach(w=>{ if(w && (w.length>1||/^\d$/.test(w))) t.add(w); });
+  t.add(reg.replace(/\s/g,""));
+  reg.split(/\s+/).forEach(w=>{ if(w.length>2) t.add(w); });
+  return [...t];
+}
+function normQ(q){
+  q=" "+q.toLowerCase().replace(/[^a-z0-9]+/g," ")+" ";
+  q=q.replace(/ series one /g," 1 series ").replace(/ one series /g," 1 series ")
+     .replace(/ series 1 /g," 1 series ").replace(/ bmw one /g," bmw 1 ")
+     .replace(/ x one /g," x1 ").replace(/ a one /g," a1 ")
+     .replace(/ cashkai | kashkai | qash kai /g," qashqai ");
+  return q;
+}
+function findCars(q){
+  q=normQ(q);
+  let best=0,out=[];
+  for(const x of ALLCARS){
+    let s=0;
+    for(const t of tokensOf(x)){ if(q.includes(" "+t+" ")) s += t.length>2?2:1; }
+    if(s>best){best=s;out=[x];}
+    else if(s===best&&s>0)out.push(x);
+  }
+  if(best<2)return[];
+  out.sort((a,b)=>(a.src==="stock"?0:1)-(b.src==="stock"?0:1));
+  return out.slice(0,3);
+}
+function carName(c){return `${c.make} ${c.model}, registration ${c.reg||c.vrm}`;}
+function carSummary(c){
+  const d=motDays(c.mot);
+  let t=`${carName(c)}. ${c.colour?c.colour+", ":""}${(+c.miles).toLocaleString()} miles, ${c.trans||""}, ${c.engine||c.fuel||""}. `;
+  if(c.mot)t+=`MOT ${d!=null&&d<0?"expired":"valid until "+fmtDate(c.mot)}. `;
+  if(c.history)t+=`Service history: ${c.history}. `;
+  if(c.keys)t+=`${c.keys} keys. `;
+  if(c.keepers)t+=`${c.keepers} previous keepers. `;
+  if(c.screen!=null)t+=`Screen price ${Math.round(c.screen)} pounds. `;
+  if(c.nprofit!=null)t+=`Expected net profit ${Math.round(c.nprofit)} pounds. `;
+  if(c.trade!=null&&c.retail!=null)t+=`Autotrader trade ${Math.round(c.trade)} pounds, retail ${Math.round(c.retail)} pounds. `;
+  return t;
+}
+function answerFor(x,q){
+  const c=x.c, name=carName(c), d=motDays(c.mot);
+  const where=x.src==="sold"?" That car is sold.":x.src==="g3"?" That one is on the G3 watchlist.":"";
+  if(/\bmot\b|m o t|expir/.test(q))
+    return c.mot?`${name}: MOT ${d<0?`expired ${Math.abs(d)} days ago, on ${fmtDate(c.mot)}`:`expires on ${fmtDate(c.mot)} — ${d} days from today`}.${where}`:`${name}: no MOT date recorded.`;
+  if(/diesel|petrol|fuel|engine/.test(q))
+    return `${name} is a ${c.engine||c.fuel||"unknown fuel type"}.${where}`;
+  if(/history|service/.test(q))
+    return `${name}: service history — ${c.history||"not recorded"}.${c.motnote?" MOT record: "+c.motnote:""}${where}`;
+  if(/mile/.test(q)) return `${name} has ${(+c.miles).toLocaleString()} miles on the clock.${where}`;
+  if(/colou?r/.test(q)) return `${name} is ${c.colour||"colour not recorded"}.${where}`;
+  if(/key/.test(q)) return `${name} comes with ${c.keys??"an unrecorded number of"} keys.${where}`;
+  if(/owner|keeper/.test(q)) return `${name} has had ${c.keepers??"an unrecorded number of"} previous keepers.${where}`;
+  if(/gearbox|transmission|manual|automatic/.test(q)) return `${name} is ${c.trans||"unknown transmission"}.${where}`;
+  if(/profit|margin/.test(q)){
+    if(x.src==="g3")return `${name}: trade ${Math.round(c.trade||0)} pounds, retail ${Math.round(c.retail||0)} pounds — a potential margin of ${Math.round((c.retail||0)-(c.trade||0))} pounds.`;
+    return `${name}: net profit ${c.nprofit!=null?Math.round(c.nprofit)+" pounds":"not calculated yet"}.${where}`;
+  }
+  if(/price|cost|worth|value|how much|screen|retail|trade/.test(q)){
+    if(x.src==="g3")return `${name}: Autotrader trade price ${Math.round(c.trade||0)} pounds, retail ${Math.round(c.retail||0)} pounds.`;
+    return `${name}: screen price ${c.screen!=null?Math.round(c.screen)+" pounds":"not set yet"}, trade ${Math.round(c.tprice||0)} pounds, retail ${Math.round(c.rprice||0)} pounds.${where}`;
+  }
+  return carSummary(c)+where;
+}
+function showCar(src,i){
+  const c=SRC[src][i], isG3=src==="g3", reg=c.reg||c.vrm;
+  el("cmTitle").textContent=`${c.make} ${c.model} — ${reg}`;
+  const rows=[];
+  const add=(k,v)=>{ if(v!=null&&v!=="") rows.push(`<div style="display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid rgba(23,209,255,.1);padding:5px 0"><span style="color:var(--dim)">${k}</span><span style="text-align:right">${v}</span></div>`); };
+  add("Status", isG3?'<span class="badge b-warn">G3 WATCHLIST</span>':src==="sold"?'<span class="badge b-dim">SOLD</span>':'<span class="badge b-ok">IN STOCK</span>');
+  add("Registration",`<span class="reg">${reg}</span>`);
+  add("Colour",c.colour); add("Mileage",(+c.miles).toLocaleString()+" miles");
+  add("Fuel / Engine",c.engine||c.fuel); add("Transmission",c.trans);
+  if(c.mot)add("MOT expiry",fmtDate(c.mot)+" "+motBadge(c.mot));
+  add("Service history",c.history); add("Keys",c.keys); add("Previous keepers",c.keepers);
+  if(isG3){
+    add("Lot number",c.lot); add("Grade","G"+c.grade); add("AT rating",c.rating);
+    add("AT trade price",fmt(c.trade)); add("AT retail price",fmt(c.retail));
+    if(c.trade&&c.retail)add("Potential margin",`<b class="pos">${fmt(c.retail-c.trade)}</b>`);
+    if(c.motnote)rows.push(`<div style="padding:8px 0;color:var(--dim)"><b style="color:var(--cyan2)">MOT NOTES:</b> ${c.motnote}</div>`);
+  }else{
+    add("Screen price",fmt(c.screen)); add("Trade price",fmt(c.tprice)); add("Retail price",fmt(c.rprice));
+    add("Prep cost",fmt(c.cost)); add("Net profit",c.nprofit!=null?`<b class="pos">${fmt(c.nprofit)}</b>`:null);
+    add("Notes",c.note);
+  }
+  rows.push(`<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+    <a class="btn" style="text-decoration:none" target="_blank" href="https://www.godriveautos.co.uk">My Website</a>
+    <a class="btn" style="text-decoration:none" target="_blank" href="https://www.autotrader.co.uk/car-search?keywords=${encodeURIComponent(c.make+" "+c.model)}">Autotrader</a>
+    <a class="btn" style="text-decoration:none" target="_blank" href="https://www.check-mot.service.gov.uk/results?registration=${encodeURIComponent(String(reg).replace(/\s/g,""))}">Gov MOT History</a>
+  </div>`);
+  el("cmBody").innerHTML=rows.join("");
+  el("cmSay").onclick=()=>say(carSummary(c));
+  el("carModal").classList.add("open");
+}
+el("carModal").addEventListener("click",e=>{if(e.target===el("carModal"))el("carModal").classList.remove("open");});
+
+function handleQuery(q0){
+  if(!q0||!q0.trim())return;
+  const q=q0.toLowerCase();
+  status("Heard: "+q0);
+  const found=findCars(q);
+  if(found.length){
+    const first=found[0];
+    goTab(first.src==="g3"?"g3":first.src==="sold"?"sold":"stock");
+    showCar(first.src,first.i);
+    const parts=found.map(x=>answerFor(x,q));
+    if(found.length>1)parts.unshift(`I found ${found.length} matching vehicles, Mr Khan.`);
+    parts.push("Details are on your display, Mr Khan.");
+    say(parts.join(" "));
+    return;
+  }
+  if(/brief|report|update|status|morning/.test(q)) say(briefing());
+  else if(/watch|auction|g3/.test(q)){goTab("g3");say(`Bringing up the G3 watchlist. ${DB.g3.length} vehicles tracked, Mr Khan.`);}
+  else if(/sold/.test(q)){goTab("sold");say(`Sold vehicles on screen. Total realised profit ${Math.round(soldProfit)} pounds, Mr Khan.`);}
+  else if(/advert|autotrader|\bads?\b/.test(q)){goTab("ads");say("Autotrader ad tracker on screen, Mr Khan.");}
+  else if(/lead|enquir|client|task/.test(q)){goTab("leads");const NB=(DB.leads||[]).filter(l=>l.status==="Awaiting reply");say(NB.length?`You have ${NB.length} enquiries awaiting a reply: ${NB.map(x=>x.name+", about the "+x.car).join("; ")}. Details on screen.`:"No enquiries awaiting a reply.");}
+  else if(/cost|expense|bill/.test(q)){goTab("costs");say(`Fixed costs total ${Math.round(fixedTotal)} pounds per month, Mr Khan.`);}
+  else if(/profit/.test(q)) say(`Projected profit on current stock: ${Math.round(potential)} pounds. Realised so far: ${Math.round(soldProfit)} pounds, Mr Khan.`);
+  else if(/stock|cars/.test(q)){goTab("stock");say(`Current stock on screen. ${stock.length} vehicles, Mr Khan.`);}
+  else say("Apologies Mr Khan, I couldn't find that vehicle. Try the make, model or registration — for example: MOT for the Seat Leon, or, is the BMW 1 Series diesel.");
+}
+
+/* ---- ask box ---- */
+/* Old Ask-box handlers removed — the conversational engine (bottom of file) owns
+   the Ask box now, so questions go to Claude instead of the canned matcher. The
+   local matcher (findCars/showCar) is still used internally to drive the display. */
+
+/* Old single-shot recognition retired — the conversational voice engine below
+   owns the microphone so the two never fight over it. */
+
+/* ================= settings ================= */
+el("setBtn").onclick=()=>{
+  el("ekey").value=localStorage.getItem("jarvis_ekey")||"";
+  el("evoice").value=localStorage.getItem("jarvis_evoice")||"";
+  el("modal").classList.add("open");
+};
+function closeModal(){el("modal").classList.remove("open");}
+function saveSettings(){
+  const k=el("ekey").value.trim(),v=el("evoice").value.trim();
+  const bu=el("backendUrl")?el("backendUrl").value.trim():"";
+  k?localStorage.setItem("jarvis_ekey",k):localStorage.removeItem("jarvis_ekey");
+  v?localStorage.setItem("jarvis_evoice",v):localStorage.removeItem("jarvis_evoice");
+  bu?localStorage.setItem("jarvis_backend",bu):localStorage.removeItem("jarvis_backend");
+  closeModal();
+  say("Settings saved, Mr Khan.");
+  setTimeout(()=>location.reload(),600); // re-run health check against new backend
+}
+el("modal").addEventListener("click",e=>{if(e.target===el("modal"))closeModal();});
+
+/* ============================================================================
+   CONVERSATIONAL ENGINE  —  Claude backend · web search · wake-word voice
+   ==========================================================================*/
+(function(){
+  "use strict";
+  const $ = id => document.getElementById(id);
+
+  /* ---- backend location (configurable) ---- */
+  const DEFAULT_BACKEND = (location.protocol === "http:" || location.protocol === "https:")
+    ? location.origin           // served by the Node backend → same origin
+    : "http://localhost:8787";  // opened as a file → talk to local backend
+  const backend = () => (localStorage.getItem("jarvis_backend") || DEFAULT_BACKEND).replace(/\/$/, "");
+
+  /* ---- capability flags, filled by /health ---- */
+  let CAP = { claude:false, webSearch:false, elevenlabs:false, model:"", reachable:false };
+
+  /* ---- conversation memory (this session) ---- */
+  let history = [];              // [{role, content}]
+  let lastVehicle = null;        // active vehicle context for follow-ups
+
+  /* ---- speech playback handle (upgrades the old say()) ---- */
+  let audioEl = null;
+
+  /* =========================== STATE PILL =========================== */
+  const STATES = {
+    offline:  "Offline",
+    standby:  "Standby",
+    listening:"Listening",
+    thinking: "Thinking",
+    searching:"Searching web",
+    speaking: "Speaking",
+    confirm:  "Awaiting confirm",
+    error:    "Connection error",
+  };
+  function setState(s){
+    const pill = $("statePill"); if(!pill) return;
+    pill.dataset.s = s;
+    $("stateTxt").textContent = STATES[s] || s;
+  }
+
+  /* =========================== CHAT LOG UI =========================== */
+  function stamp(){ return new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}); }
+  function scroll(){ const l=$("chatLog"); l.scrollTop = l.scrollHeight; }
+
+  function addUser(text){
+    const d=document.createElement("div"); d.className="bubble b-user";
+    d.innerHTML = esc(text)+`<span class="ts">${stamp()}</span>`;
+    $("chatLog").appendChild(d); scroll();
+  }
+  function addJarvis(text, {sources=[], origin=null}={}){
+    const d=document.createElement("div"); d.className="bubble b-jarvis";
+    let html = `<div class="who">Jarvis</div>`;
+    if(origin==="web")   html += `<span class="origin web">Live web</span>`;
+    if(origin==="stock") html += `<span class="origin stock">GoDrive record</span>`;
+    html += esc(text);
+    if(sources && sources.length){
+      html += `<div class="srcbox"><div class="slab">Sources — checked ${stamp()}</div>`;
+      sources.slice(0,6).forEach(s=>{ html += `<a href="${encodeURI(s.url)}" target="_blank" rel="noopener">${esc(s.title||s.url)}</a>`; });
+      html += `</div>`;
+    }
+    html += `<span class="ts">${stamp()}</span>`;
+    d.innerHTML = html; $("chatLog").appendChild(d); scroll();
+    return d;
+  }
+  function addSystem(text){ const d=document.createElement("div"); d.className="bubble b-sys"; d.textContent=text; $("chatLog").appendChild(d); scroll(); }
+  function addError(text){ const d=document.createElement("div"); d.className="bubble b-err"; d.textContent=text; $("chatLog").appendChild(d); scroll(); }
+  function addTyping(){
+    const d=document.createElement("div"); d.className="bubble b-jarvis"; d.id="typingRow";
+    d.innerHTML=`<div class="who">Jarvis</div><span class="typing"><i></i><i></i><i></i></span>`;
+    $("chatLog").appendChild(d); scroll(); return d;
+  }
+  const esc = s => String(s).replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+  /* =========================== SPEECH OUT =========================== */
+  // Upgrade the global say(): backend ElevenLabs → browser voice fallback.
+  async function speak(text){
+    if(!voiceOn()){ return; }
+    stopSpeaking();
+    setState("speaking");
+    pauseWakeForSpeech(true);
+    // Try backend TTS first
+    try{
+      const r = await fetch(backend()+"/api/jarvis/speak",{
+        method:"POST",headers:{"content-type":"application/json"},
+        body:JSON.stringify({text})
+      });
+      if(r.ok){
+        const blob = await r.blob();
+        audioEl = new Audio(URL.createObjectURL(blob));
+        audioEl.onended = ()=>{ afterSpeak(); };
+        audioEl.onerror = ()=>{ browserVoice(text); };
+        await audioEl.play(); return;
+      }
+      // 501 = no TTS configured → browser voice. Any other → browser voice too.
+    }catch(_){ /* backend unreachable → browser voice */ }
+    browserVoice(text);
+  }
+  function browserVoice(text){
+    try{
+      const u=new SpeechSynthesisUtterance(text); u.rate=1;u.pitch=.95;u.lang="en-GB";
+      const vs=speechSynthesis.getVoices();
+      u.voice=vs.find(v=>/en-GB/i.test(v.lang)&&/male|daniel|arthur|george/i.test(v.name))||vs.find(v=>/en-GB/i.test(v.lang))||null;
+      u.onend=()=>afterSpeak();
+      speechSynthesis.speak(u);
+    }catch(_){ afterSpeak(); }
+  }
+  function afterSpeak(){
+    setState(wakeOn()?"standby":"standby");
+    pauseWakeForSpeech(false);
+    // brief follow-up window when in a voice conversation
+    if(wakeOn() && followUpWanted){ followUpWanted=false; startCommand(true); }
+  }
+  function stopSpeaking(){
+    if(audioEl){ try{audioEl.pause();}catch(_){} audioEl=null; }
+    try{ speechSynthesis.cancel(); }catch(_){}
+  }
+  // Expose a compatible say() so existing buttons (Brief Me, Read Aloud) speak too.
+  window.say = speak;
+
+  /* =========================== TOGGLES =========================== */
+  const voiceOn = () => $("tgVoice").classList.contains("on");
+  const webOn   = () => $("tgWeb").classList.contains("on");
+  const wakeOn  = () => $("tgWake").classList.contains("on");
+  function bindToggle(id, onChange){
+    $(id).addEventListener("click",()=>{ $(id).classList.toggle("on"); onChange && onChange($(id).classList.contains("on")); });
+  }
+
+  /* =========================== VEHICLE CONTEXT =========================== */
+  // Reuse the existing matcher to (a) drive the display and (b) build a
+  // verified stock-context string that grounds Claude's answer.
+  function buildVehicleContext(text){
+    let found=[];
+    try{ found = findCars(text.toLowerCase()); }catch(_){ found=[]; }
+    if(!found.length && lastVehicle && /\b(it|its|it's|this|that|the car|same)\b/i.test(text)) found=[lastVehicle];
+    if(!found.length) return null;
+    lastVehicle = found[0];
+    // drive the display
+    try{
+      const f=found[0]; goTab(f.src==="g3"?"g3":f.src==="sold"?"sold":"stock"); showCar(f.src,f.i);
+    }catch(_){}
+    // build context (owner-facing: costs allowed, clearly labelled confidential)
+    return found.map(x=>{
+      const c=x.c, reg=c.reg||c.vrm;
+      const L=[`${c.make} ${c.model} (${reg}) — ${x.src.toUpperCase()}`];
+      if(c.colour) L.push(`Colour: ${c.colour}`);
+      if(c.miles!=null) L.push(`Mileage: ${(+c.miles).toLocaleString()}`);
+      if(c.trans) L.push(`Transmission: ${c.trans}`);
+      if(c.engine||c.fuel) L.push(`Engine/fuel: ${c.engine||c.fuel}`);
+      if(c.mot) L.push(`MOT expiry: ${c.mot}`);
+      if(c.history) L.push(`Service history: ${c.history}`);
+      if(c.keys!=null) L.push(`Keys: ${c.keys}`);
+      if(c.keepers!=null) L.push(`Previous keepers: ${c.keepers}`);
+      if(c.screen!=null) L.push(`Screen (advertised) price: £${c.screen}`);
+      if(c.rprice!=null) L.push(`AT retail: £${c.rprice}`);
+      if(c.tprice!=null) L.push(`[CONFIDENTIAL] Trade/purchase price: £${c.tprice}`);
+      if(c.cost!=null) L.push(`[CONFIDENTIAL] Prep cost: £${c.cost}`);
+      if(c.nprofit!=null) L.push(`[CONFIDENTIAL] Net profit: £${c.nprofit}`);
+      if(c.motnote) L.push(`MOT notes: ${c.motnote}`);
+      if(c.note) L.push(`Internal note: ${c.note}`);
+      return L.join("\n");
+    }).join("\n\n");
+  }
+
+  /* =========================== SEND TO JARVIS =========================== */
+  let busy=false;
+  async function sendToJarvis(text,{spoken=false}={}){
+    text=(text||"").trim(); if(!text||busy) return;
+
+    // Local intent: stop/sleep phrases short-circuit (no round trip)
+    if(/^(stop listening|cancel|go to sleep,? jarvis|go to sleep)\b/i.test(text)){
+      stopCommand(); addSystem("Returning to standby."); setState("standby"); return;
+    }
+
+    busy=true; addUser(text); history.push({role:"user",content:text});
+    const ctx = buildVehicleContext(text);
+    const typing = addTyping();
+    setState(webOn() ? "thinking" : "thinking");
+
+    if(!CAP.reachable){
+      typing.remove();
+      addError("The Claude brain isn't reachable, so I won't fabricate an answer. Start the backend (npm start) or set the backend URL in Settings. Local stock look-ups still work from the dashboard tabs.");
+      setState("error"); busy=false; return;
+    }
+
+    try{
+      const r = await fetch(backend()+"/api/jarvis/chat",{
+        method:"POST",headers:{"content-type":"application/json"},
+        body:JSON.stringify({ message:text, history:history.slice(-12), vehicleContext:ctx, allowWeb:webOn() })
+      });
+      typing.remove();
+      if(!r.ok){
+        const e = await r.json().catch(()=>({message:`Error ${r.status}`}));
+        addError(e.message||`Error ${r.status}.`); setState("error"); busy=false; return;
+      }
+      const data = await r.json();
+      if(data.usedWeb) setState("searching");
+      const origin = data.usedStock ? "stock" : (data.usedWeb ? "web" : null);
+      addJarvis(data.text,{sources:data.sources,origin});
+      history.push({role:"assistant",content:data.text});
+      if(spoken && voiceOn()){ followUpWanted=true; await speak(data.text); }
+      else { setState("standby"); }
+    }catch(err){
+      typing.remove();
+      addError("I couldn't reach the backend just now. Nothing was made up. Check your connection or the backend URL in Settings.");
+      setState("error");
+    }finally{ busy=false; }
+  }
+
+  /* =========================== WAKE-WORD + VOICE ENGINE =========================== */
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec=null, recActive=false, mode="off";   // off | wake | command
+  let followUpWanted=false, speaking=false, cmdTimer=null;
+  const WAKE = /\b(wake up,?\s*)?jarvis\b/i;
+  const COMMAND_TIMEOUT = 8000;
+
+  function chime(){
+    try{
+      const ac=new (window.AudioContext||window.webkitAudioContext)();
+      const o=ac.createOscillator(), g=ac.createGain();
+      o.connect(g); g.connect(ac.destination); o.type="sine"; o.frequency.value=880;
+      g.gain.setValueAtTime(.0001,ac.currentTime); g.gain.exponentialRampToValueAtTime(.2,ac.currentTime+.03);
+      g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+.35);
+      o.start(); o.stop(ac.currentTime+.36);
+    }catch(_){}
+  }
+
+  function ensureRec(){
+    if(rec||!SR) return rec;
+    rec=new SR(); rec.lang="en-GB"; rec.continuous=true; rec.interimResults=false;
+    rec.onresult=e=>{
+      const t=e.results[e.results.length-1][0].transcript.trim();
+      if(!t) return;
+      if(mode==="wake"){
+        if(WAKE.test(t)){
+          const after=t.replace(WAKE,"").replace(/^[,\s]+/,"").trim();
+          chime();
+          if(after.length>2){ // "Jarvis, what's the weather" — one breath
+            speak("Yes, Mr Khan.").then(()=>{}); sendToJarvis(after,{spoken:true});
+          }else{
+            followUpWanted=false;
+            speak("Yes, Mr Khan. I'm listening.");
+            startCommand(false);
+          }
+        }
+      }else if(mode==="command"){
+        clearTimeout(cmdTimer);
+        if(/^(stop listening|cancel|go to sleep)/i.test(t)){ stopCommand(); addSystem("Returning to standby."); return; }
+        sendToJarvis(t,{spoken:true});
+        // brief follow-up handled after speak()
+      }
+    };
+    rec.onend=()=>{ recActive=false; if(mode!=="off" && !speaking) safeStart(); };
+    rec.onerror=ev=>{
+      recActive=false;
+      if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){
+        addError("Microphone permission was denied. Voice is off; typing still works.");
+        micOff(); wakeOffUI();
+      }
+    };
+    return rec;
+  }
+  function safeStart(){
+    if(!rec||recActive||speaking||mode==="off") return;
+    try{ rec.start(); recActive=true; }catch(_){ /* already started */ }
+  }
+  function pauseWakeForSpeech(on){
+    speaking=on;
+    if(on){ if(rec&&recActive){ try{rec.stop();}catch(_){}} }
+    else { if(mode!=="off") setTimeout(safeStart,250); }
+  }
+  function startCommand(fromFollowUp){
+    mode="command"; setState("listening"); safeStart();
+    clearTimeout(cmdTimer);
+    cmdTimer=setTimeout(()=>{ if(mode==="command"){ stopCommand(); } }, fromFollowUp?6000:COMMAND_TIMEOUT);
+  }
+  function stopCommand(){
+    clearTimeout(cmdTimer); followUpWanted=false;
+    if(wakeOn()){ mode="wake"; setState("standby"); safeStart(); }
+    else { mode="off"; setState("standby"); if(rec&&recActive){try{rec.stop();}catch(_){}}}
+  }
+
+  /* wake toggle */
+  function wakeOffUI(){ $("tgWake").classList.remove("on"); }
+  bindToggle("tgWake", async on=>{
+    if(on){
+      if(!SR){ addError("This browser can't do speech recognition. Wake word needs Chrome, Edge or Safari."); wakeOffUI(); return; }
+      const ok = await requestMic(); if(!ok){ wakeOffUI(); return; }
+      ensureRec(); mode="wake"; setState("standby"); safeStart();
+      addSystem('Wake word on. Say "Jarvis" to talk to me.');
+    }else{
+      mode="off"; setState("standby"); if(rec&&recActive){try{rec.stop();}catch(_){}}
+      addSystem("Wake word off.");
+    }
+  });
+
+  /* microphone (push-to-talk single command) */
+  function micOff(){ $("tgMic").classList.remove("on"); }
+  bindToggle("tgMic", async on=>{
+    if(on){
+      if(!SR){ addError("Speech recognition isn't supported in this browser."); micOff(); return; }
+      const ok=await requestMic(); if(!ok){ micOff(); return; }
+      ensureRec(); stopSpeaking(); followUpWanted=false; startCommand(false);
+      setTimeout(()=>micOff(), 500); // it's momentary; toggle reflects the tap
+    }
+  });
+  async function requestMic(){
+    try{ const s=await navigator.mediaDevices.getUserMedia({audio:true}); s.getTracks().forEach(t=>t.stop()); return true; }
+    catch(_){ addError("Microphone permission is needed for voice. You can still type."); return false; }
+  }
+
+  /* reactor mic + chat mic buttons → one voice command */
+  function pushToTalk(){
+    if(!SR){ addError("Speech recognition isn't supported in this browser."); return; }
+    requestMic().then(ok=>{ if(!ok) return; ensureRec(); stopSpeaking(); followUpWanted=false; goTab("chat"); startCommand(false); });
+  }
+  if($("chatMic")) $("chatMic").onclick=pushToTalk;
+  if($("micBtn"))  $("micBtn").onclick=pushToTalk;
+
+  /* =========================== TEXT INPUT WIRING =========================== */
+  $("chatSend").onclick=()=>{ const v=$("chatIn").value; $("chatIn").value=""; sendToJarvis(v); };
+  $("chatIn").addEventListener("keydown",e=>{ if(e.key==="Enter"){ const v=$("chatIn").value; $("chatIn").value=""; sendToJarvis(v);} });
+
+  // Re-point the reactor's original Ask box + buttons at the conversational engine
+  if($("askBtn")) $("askBtn").onclick=()=>{ const v=$("askIn").value; $("askIn").value=""; goTab("chat"); sendToJarvis(v); };
+  if($("askIn")) $("askIn").addEventListener("keydown",e=>{ if(e.key==="Enter"){ const v=$("askIn").value; $("askIn").value=""; goTab("chat"); sendToJarvis(v);} });
+
+  /* toolbar buttons */
+  $("btnStopSpk").onclick=()=>{ stopSpeaking(); setState(mode==="off"?"standby":"standby"); };
+  $("btnNewConv").onclick=()=>{ history=[]; lastVehicle=null; $("chatLog").innerHTML=""; greet(); };
+  $("btnSettings2").onclick=()=>{ openSettings(); };
+  $("tgVoice").classList.add("on"); // speak replies on by default
+  bindToggle("tgVoice"); bindToggle("tgWeb");
+
+  /* =========================== SETTINGS (backend URL + voice) =========================== */
+  function openSettings(){
+    $("ekey") && ($("ekey").value=localStorage.getItem("jarvis_ekey")||"");
+    $("evoice") && ($("evoice").value=localStorage.getItem("jarvis_evoice")||"");
+    const bu=$("backendUrl"); if(bu) bu.value=localStorage.getItem("jarvis_backend")||"";
+    $("modal").classList.add("open");
+  }
+  if($("setBtn")) $("setBtn").onclick=openSettings;
+
+  /* =========================== HEALTH + GREET =========================== */
+  async function checkHealth(){
+    try{
+      const r=await fetch(backend()+"/api/jarvis/health",{cache:"no-store"});
+      if(r.ok){ CAP=await r.json(); CAP.reachable=true; }
+      else CAP.reachable=false;
+    }catch(_){ CAP.reachable=false; }
+    renderCap();
+  }
+  function renderCap(){
+    const h=$("capHint"); if(!h) return;
+    if(!CAP.reachable){
+      h.innerHTML=`<b style="color:var(--bad)">Claude brain offline.</b> The dashboard and stock look-ups work, but conversation and web search need the backend running. Start it with <code>npm start</code>, then reload — or set its URL in Settings.`;
+      setState("offline"); return;
+    }
+    const bits=[];
+    bits.push(CAP.claude?`<span style="color:var(--ok)">Claude ✓</span>`:`<span style="color:var(--bad)">Claude ✗ (set ANTHROPIC_API_KEY)</span>`);
+    bits.push(CAP.webSearch?`<span style="color:var(--ok)">Web search ✓</span>`:`<span style="color:var(--dim)">Web search off</span>`);
+    bits.push(CAP.elevenlabs?`<span style="color:var(--ok)">ElevenLabs voice ✓</span>`:`<span style="color:var(--dim)">Browser voice</span>`);
+    if(CAP.model) bits.push(`<span style="color:var(--dim)">${CAP.model}</span>`);
+    h.innerHTML=bits.join(" &nbsp;·&nbsp; ");
+    setState("standby");
+  }
+  function greet(){
+    if(CAP.reachable && CAP.claude){
+      addJarvis(`Jarvis online. I'm your GoDrive general manager and general assistant, Mr Khan — ask me about stock, or anything else. Say "Jarvis" once wake word is on, or just type.`);
+    }else{
+      addSystem("Jarvis interface loaded. Connect the backend to enable conversation and web search.");
+    }
+  }
+
+  /* let the arc-reactor briefing show inside the conversation too */
+  window.jarvisShowBriefing = (t)=>{ goTab("chat"); addJarvis(t,{origin:"stock"}); };
+
+  /* boot */
+  checkHealth().then(()=>{ greet(); });
+})();
+</script>
+</body>
+</html>
