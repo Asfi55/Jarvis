@@ -1,0 +1,18 @@
+{
+  "name": "jarvis-godrive-portal",
+  "version": "2.0.0",
+  "description": "J.A.R.V.I.S — GoDrive Autos: conversational AI dealership assistant with Claude, live web search and wake-word voice.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
