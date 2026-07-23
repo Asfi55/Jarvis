@@ -247,6 +247,7 @@ footer{text-align:center;color:var(--dim);font-size:11px;letter-spacing:2px;padd
         <span class="toggle" id="tgMic"><span class="tled"></span>Microphone</span>
         <span class="toggle on" id="tgWeb"><span class="tled"></span>Web search</span>
         <span class="toggle" id="tgVoice"><span class="tled"></span>Speak replies</span>
+        <span class="toggle" id="tgGmail"><span class="tled"></span>Gmail: checking…</span>
         <span class="toggle" id="btnStopSpk">■ Stop speaking</span>
         <span class="toggle" id="btnNewConv">✎ New chat</span>
         <span class="toggle" id="btnSettings2">⚙ Settings</span>
@@ -750,7 +751,7 @@ el("modal").addEventListener("click",e=>{if(e.target===el("modal"))closeModal();
   const backend = () => (localStorage.getItem("jarvis_backend") || DEFAULT_BACKEND).replace(/\/$/, "");
 
   /* ---- capability flags, filled by /health ---- */
-  let CAP = { claude:false, webSearch:false, elevenlabs:false, model:"", reachable:false };
+  let CAP = { claude:false, webSearch:false, elevenlabs:false, gmailConfigured:false, gmailConnected:false, model:"", reachable:false };
 
   /* ---- conversation memory (this session) ---- */
   let history = [];              // [{role, content}]
@@ -1097,9 +1098,18 @@ el("modal").addEventListener("click",e=>{if(e.target===el("modal"))closeModal();
     bits.push(CAP.claude?`<span style="color:var(--ok)">Claude ✓</span>`:`<span style="color:var(--bad)">Claude ✗ (set ANTHROPIC_API_KEY)</span>`);
     bits.push(CAP.webSearch?`<span style="color:var(--ok)">Web search ✓</span>`:`<span style="color:var(--dim)">Web search off</span>`);
     bits.push(CAP.elevenlabs?`<span style="color:var(--ok)">ElevenLabs voice ✓</span>`:`<span style="color:var(--dim)">Browser voice</span>`);
+    bits.push(CAP.gmailConnected?`<span style="color:var(--ok)">Gmail ✓</span>`:CAP.gmailConfigured?`<span style="color:var(--warn)">Gmail: connect below</span>`:`<span style="color:var(--dim)">Gmail not set up</span>`);
     if(CAP.model) bits.push(`<span style="color:var(--dim)">${CAP.model}</span>`);
     h.innerHTML=bits.join(" &nbsp;·&nbsp; ");
     setState("standby");
+
+    // Gmail toggle button reflects real status; tapping it opens the connect flow
+    const g=$("tgGmail");
+    if(g){
+      if(CAP.gmailConnected){ g.classList.add("on"); g.querySelector("span:last-child").textContent="Gmail: connected"; g.title="Gmail is connected (read-only)"; g.onclick=null; }
+      else if(CAP.gmailConfigured){ g.classList.remove("on"); g.querySelector("span:last-child").textContent="Gmail: connect"; g.onclick=()=>window.open(backend()+"/api/jarvis/gmail/connect","_blank"); }
+      else { g.classList.remove("on"); g.querySelector("span:last-child").textContent="Gmail: not set up"; g.onclick=()=>addSystem("Gmail needs Google Cloud credentials set on the backend first — see README.md → Connecting Gmail."); }
+    }
   }
   function greet(){
     if(CAP.reachable && CAP.claude){
